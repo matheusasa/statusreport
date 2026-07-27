@@ -8,6 +8,7 @@ import { KpiCard } from "./KpiCard";
 import { ProgressBar } from "./ProgressBar";
 import { StatusPill } from "./StatusPill";
 import { SelectFilter, ToggleFilter } from "./SelectFilter";
+import { ProjectDatesCard } from "./ProjectDatesCard";
 import { initials, formatDate } from "@/lib/format";
 
 function useUniqueOptions(items: WorkItem[]) {
@@ -29,7 +30,17 @@ function useUniqueOptions(items: WorkItem[]) {
  * computed once server-side (lib/metrics.ts) from the whole, unfiltered
  * portfolio and don't change here; only the item counts shown per section do.
  */
-export function DashboardExplorer({ items, sprints }: { items: WorkItem[]; sprints: SprintSummary[] }) {
+export function DashboardExplorer({
+  items,
+  sprints,
+  projectInfo,
+  isManager,
+}: {
+  items: WorkItem[];
+  sprints: SprintSummary[];
+  projectInfo: { startDate: string | null; endDate: string | null; notes: string | null };
+  isManager: boolean;
+}) {
   const { sprints: sprintOptions, states, types, assignees: assigneeOptions } = useUniqueOptions(items);
 
   const [sprintFilter, setSprintFilter] = useState("");
@@ -78,6 +89,14 @@ export function DashboardExplorer({ items, sprints }: { items: WorkItem[]; sprin
 
   return (
     <div className="space-y-6">
+      <ProjectDatesCard
+        startDate={projectInfo.startDate}
+        endDate={projectInfo.endDate}
+        notes={projectInfo.notes}
+        pctDoneByPoints={totals.pctDoneByPoints}
+        canEdit={isManager}
+      />
+
       {/* Filter bar */}
       <div className="card flex flex-wrap items-end gap-4 p-4 shadow-card">
         <SelectFilter label="Sprint" value={sprintFilter} onChange={setSprintFilter} options={sprintOptions} />

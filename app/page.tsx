@@ -5,7 +5,6 @@ import { getActiveProject } from "@/lib/active-project";
 import { requireUser } from "@/lib/session";
 import { formatDateTime } from "@/lib/format";
 import { PageHeader } from "@/components/PageHeader";
-import { ProjectDatesCard } from "@/components/ProjectDatesCard";
 import { DashboardExplorer } from "@/components/DashboardExplorer";
 import { NoProjectAccess } from "@/components/EmptyProjectState";
 
@@ -26,7 +25,7 @@ export default async function DashboardPage() {
   }
 
   const [portfolio, projectInfo] = await Promise.all([getPortfolio(project), getProjectInfo(project.id)]);
-  const { totals, sprints, lastSyncedAt } = portfolio;
+  const { sprints, lastSyncedAt } = portfolio;
 
   return (
     <div className="space-y-6">
@@ -46,15 +45,7 @@ export default async function DashboardPage() {
         }
       />
 
-      <ProjectDatesCard
-        startDate={projectInfo.startDate}
-        endDate={projectInfo.endDate}
-        notes={projectInfo.notes}
-        pctDoneByPoints={totals.pctDoneByPoints}
-        canEdit={isManager}
-      />
-
-      <DashboardExplorer items={portfolio.items} sprints={sprints} />
+      <DashboardExplorer items={portfolio.items} sprints={sprints} projectInfo={projectInfo} isManager={isManager} />
     </div>
   );
 }
