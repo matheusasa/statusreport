@@ -1,9 +1,27 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { admin } from "better-auth/plugins";
+import { defaultAc, adminAc, userAc } from "better-auth/plugins/admin/access";
 import { nextCookies } from "better-auth/next-js";
 import { prisma } from "./prisma";
 import { sendPasswordResetEmail } from "./email";
+
+/**
+ * Better Auth's admin plugin gates ban/impersonate/set-role/etc. through its
+ * own access-control roles map (`hasPermission` in
+ * better-auth/dist/plugins/admin/has-permission.mjs), which is *separate*
+ * from the `adminRoles` option below — `adminRoles` only decides who counts
+ * as an "admin target" (e.g. for impersonation escalation checks), not who's
+ * allowed to call these endpoints. Without a custom `roles` map, it falls
+ * back to defaultRoles = { admin: adminAc, user: userAc } (lowercase keys).
+ * Our Prisma `UserRole` enum is uppercase (ADMIN/MANAGER/CLIENT), so
+ * `acRoles["ADMIN"]` was always undefined and every ban/setRole/impersonate
+ * call was silently denied — even for real admins. Mapping our actual role
+ * strings to the plugin's built-in role objects fixes that. This only
+ * affects Better Auth's own permission layer for this app's local user
+ * table; it doesn't reach outside ProjectStatusReport.
+ */
+const managerAc = defaultAc.newRole({ user: [], session: [] });
 
 /**
  * Email/password auth only, no public sign-up: accounts are created by an
@@ -34,6 +52,11 @@ export const auth = betterAuth({
     admin({
       defaultRole: "CLIENT",
       adminRoles: ["ADMIN"],
+      roles: {
+        ADMIN: adminAc,
+        MANAGER: managerAc,
+        CLIENT: userAc,
+      },
     }),
     // Must be the last plugin: lets server actions calling auth.api.* set
     // cookies directly via next/headers instead of returning them manually.
