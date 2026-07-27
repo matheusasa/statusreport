@@ -217,3 +217,69 @@ export async function fetchProjectWorkItems(projectName: string): Promise<Mapped
   const raw = await fetchWorkItemsBatch(orgUrl, pat, ids);
   return raw.map((item) => mapAzureWorkItem(item, `${orgUrl}/${encodeURIComponent(projectName)}/_workitems/edit/${item.id}`));
 }
+
+// --- Iteration (sprint) start/finish dates ---------------------------------
+
+export interface SprintIterationPeriod {
+  sprintNumber: number;
+  startDate: Date | null;
+  endDate: Date | null;
+}
+
+interface ClassificationNode {
+  name: string;
+  path?: string;
+  attributes?: { startDate?: string; finishDate?: string };
+  children?: ClassificationNode[];
+}
+
+/** Mirrors parseSprintNumber() in lib/metrics.ts — kept independent so this
+ * module has no dependency on lib/metrics.ts. */
+function parseSprintNumberFromName(name: string): number | null {
+  const match = name.match(/Sprint\s*0*(\d+)/i);
+  return match ? Number(match[1]) : null;
+}
+
+function flattenIterationNodes(node: ClassificationNode, out: ClassificationNode[] = []): ClassificationNode[] {
+  out.push(node);
+  for (const child of node.children ?? []) flattenIterationNodes(child, out);
+  return out;
+}
+
+/**
+ * Fetches the start/finish dates of every "Sprint N" iteration node
+ * registered for `projectName` in Azure DevOps (Project Settings > Iterations),
+ * via the classification nodes API. Iterations without a recognizable
+ * "Sprint N" name, or without dates configured, are skipped. Used to compute
+ * calendar-accurate sprint status (see lib/metrics.ts) instead of inferring
+ * it purely from work item state.
+ */
+export async function fetchProjectIterations(projectName: string): Promise<SprintIterationPeriod[]> {
+  const { orgUrl, pat } = getConfig();
+  const url = `${orgUrl}/${encodeURIComponent(
+    projectName
+  )}/_apis/wit/classificationnodes/iterations?$depth=6&api-version=${API_VERSION}`;
+
+  const res = await fetch(url, {
+    headers: { Authorization: authHeader(pat) },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error(`Falha ao consultar iterations no Azure DevOps (HTTP ${res.status}): ${await res.text()}`);
+  }
+  const root = (await res.json()) as ClassificationNode;
+  const nodes = flattenIterationNodes(root);
+
+  const bySprintNumber = new Map<number, SprintIterationPeriod>();
+  for (const node of nodes) {
+    const sprintNumber = parseSprintNumberFromName(node.name);
+    if (sprintNumber === null) continue;
+    if (!node.attributes?.startDate && !node.attributes?.finishDate) continue;
+    bySprintNumber.set(sprintNumber, {
+      sprintNumber,
+      startDate: toDate(node.attributes?.startDate),
+      endDate: toDate(node.attributes?.finishDate),
+    });
+  }
+  return Array.from(bySprintNumber.values());
+}

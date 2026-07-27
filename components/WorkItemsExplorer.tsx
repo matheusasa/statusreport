@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { WorkItem } from "@/lib/types";
 import { StatusPill, SchedulePill } from "./StatusPill";
+import { SelectFilter, ToggleFilter } from "./SelectFilter";
 import { formatDate } from "@/lib/format";
 
 const SCHEDULE_LABEL: Record<string, string> = {
@@ -23,36 +24,6 @@ function useUniqueOptions(items: WorkItem[]) {
   }, [items]);
 }
 
-function SelectFilter({
-  label,
-  value,
-  onChange,
-  options,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  options: string[];
-}) {
-  return (
-    <div className="flex flex-col gap-1">
-      <label className="font-mono text-label-mono uppercase tracking-wider text-outline">{label}</label>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-body-md text-on-surface focus:border-primary focus:outline-none"
-      >
-        <option value="">Todos</option>
-        {options.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
 export function WorkItemsExplorer({ items }: { items: WorkItem[] }) {
   const searchParams = useSearchParams();
   const { sprints, states, types, assignees } = useUniqueOptions(items);
@@ -63,9 +34,11 @@ export function WorkItemsExplorer({ items }: { items: WorkItem[] }) {
   const [typeFilter, setTypeFilter] = useState("");
   const [assigneeFilter, setAssigneeFilter] = useState("");
   const [scheduleFilter, setScheduleFilter] = useState(searchParams.get("schedule") ?? "");
+  const [hideBacklog, setHideBacklog] = useState(false);
 
   const filtered = useMemo(() => {
     return items.filter((item) => {
+      if (hideBacklog && item.sprintNumber === null) return false;
       if (search && !`${item.id} ${item.title}`.toLowerCase().includes(search.toLowerCase())) return false;
       if (sprintFilter && item.sprintLabel !== sprintFilter) return false;
       if (stateFilter && item.state !== stateFilter) return false;
@@ -74,7 +47,7 @@ export function WorkItemsExplorer({ items }: { items: WorkItem[] }) {
       if (scheduleFilter && item.scheduleFlag !== scheduleFilter) return false;
       return true;
     });
-  }, [items, search, sprintFilter, stateFilter, typeFilter, assigneeFilter, scheduleFilter]);
+  }, [items, search, sprintFilter, stateFilter, typeFilter, assigneeFilter, scheduleFilter, hideBacklog]);
 
   return (
     <div className="space-y-4">
@@ -110,7 +83,8 @@ export function WorkItemsExplorer({ items }: { items: WorkItem[] }) {
             ))}
           </select>
         </div>
-        {(search || sprintFilter || stateFilter || typeFilter || assigneeFilter || scheduleFilter) && (
+        <ToggleFilter label="Ocultar backlog" checked={hideBacklog} onChange={setHideBacklog} />
+        {(search || sprintFilter || stateFilter || typeFilter || assigneeFilter || scheduleFilter || hideBacklog) && (
           <button
             onClick={() => {
               setSearch("");
@@ -119,6 +93,7 @@ export function WorkItemsExplorer({ items }: { items: WorkItem[] }) {
               setTypeFilter("");
               setAssigneeFilter("");
               setScheduleFilter("");
+              setHideBacklog(false);
             }}
             className="rounded-lg border border-outline-variant px-3 py-2 text-body-md text-on-surface-variant transition-colors hover:bg-surface-container-high"
           >

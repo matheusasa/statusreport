@@ -54,6 +54,14 @@ export interface SprintSummary {
   aheadItems: number;
   phase: "concluida" | "andamento" | "planejada";
   isCurrent: boolean;
+  /** Data de início/fim da sprint (ISO), sincronizada do Azure DevOps. Null
+   * quando o projeto não tem essa iteration configurada/sincronizada — nesse
+   * caso `phase`/`isCurrent` caem de volta para a heurística por estado. */
+  startDate: string | null;
+  endDate: string | null;
+  /** true quando phase/isCurrent desta sprint foram calculados a partir de
+   * startDate/endDate reais, e não da heurística baseada em estado dos itens. */
+  datesFromSchedule: boolean;
 }
 
 export interface Portfolio {

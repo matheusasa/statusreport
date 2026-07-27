@@ -2,6 +2,14 @@ import { loadWorkItemRows, RawRow } from "./parquet";
 import { prisma } from "./prisma";
 import type { ProjectRecord } from "./projects";
 import { Portfolio, SprintSummary, StateGroup, WorkItem } from "./types";
+import { summarizeTotals, summarizeAssignees, summarizeSprintItems } from "./portfolio-summary";
+
+// Re-exported so existing server-side callers of lib/metrics.ts don't need to
+// change their import path. Client components must import these directly
+// from lib/portfolio-summary.ts instead (see that file's doc-comment for why:
+// this module pulls in lib/parquet.ts, which uses Node's `fs` and breaks the
+// browser bundle if a "use client" file imports anything from here).
+export { summarizeTotals, summarizeAssignees, summarizeSprintItems };
 
 const DONE_STATES = new Set(["Closed", "Resolved"]);
 const ACTIVE_STATES = new Set(["In Progress", "Active", "Tests Done", "Pending Publish"]);
@@ -158,12 +166,32 @@ function round1(n: number): number {
   return Math.round(n * 10) / 10;
 }
 
+/** Sprint calendar dates, synced from Azure DevOps iterations (see
+ * lib/azure-devops.ts#fetchProjectIterations and lib/sync.ts). Keyed by
+ * sprintNumber; missing entries mean "no dates synced for this sprint". */
+export type SprintPeriodMap = Map<number, { startDate: Date | null; endDate: Date | null }>;
+
 /**
  * Pure aggregation step, independent of where the items came from: computes
  * sprint summaries, the "current sprint", per-item schedule flags, totals
  * and workload by assignee.
+ *
+ * When `periods` has start/end dates for a sprint, that sprint's phase
+ * ("concluida"/"andamento"/"planejada") and whether it's the current sprint
+ * are decided by calendar date (today vs. start/end) rather than by the
+ * state of its work items — this is what the user actually experiences
+ * ("a sprint acabou" independent of whether every item was formally closed).
+ * Sprints without synced dates (or legacy PARQUET projects, which never have
+ * any) fall back to the original item-state heuristic.
  */
-function buildPortfolio(items: WorkItem[], sourceFiles: string[], lastSyncedAt: string | null): Portfolio {
+function buildPortfolio(
+  items: WorkItem[],
+  sourceFiles: string[],
+  lastSyncedAt: string | null,
+  periods: SprintPeriodMap = new Map()
+): Portfolio {
+  const now = new Date();
+
   // --- Sprint aggregation (first pass, without schedule flags) ---
   const sprintNumbers = Array.from(
     new Set(items.map((i) => i.sprintNumber).filter((n): n is number => n !== null))
@@ -180,9 +208,21 @@ function buildPortfolio(items: WorkItem[], sourceFiles: string[], lastSyncedAt: 
       .reduce((sum, i) => sum + (i.points ?? 0), 0);
     const pctDoneByItems = sprintItems.length ? round1((doneItems / sprintItems.length) * 100) : 0;
 
-    let phase: SprintSummary["phase"] = "planejada";
-    if (sprintItems.length > 0 && doneItems === sprintItems.length) phase = "concluida";
-    else if (doneItems > 0 || activeItems > 0) phase = "andamento";
+    const period = periods.get(num);
+    const hasFullPeriod = !!(period?.startDate && period?.endDate);
+
+    let phase: SprintSummary["phase"];
+    if (hasFullPeriod) {
+      const start = period!.startDate as Date;
+      const end = period!.endDate as Date;
+      if (now > end) phase = "concluida";
+      else if (now < start) phase = "planejada";
+      else phase = "andamento";
+    } else {
+      phase = "planejada";
+      if (sprintItems.length > 0 && doneItems === sprintItems.length) phase = "concluida";
+      else if (doneItems > 0 || activeItems > 0) phase = "andamento";
+    }
 
     return {
       sprintNumber: num,
@@ -194,23 +234,49 @@ function buildPortfolio(items: WorkItem[], sourceFiles: string[], lastSyncedAt: 
       donePoints,
       pctDoneByItems,
       phase,
+      startDate: period?.startDate ?? null,
+      endDate: period?.endDate ?? null,
+      hasFullPeriod,
     };
   });
 
-  // The "current" sprint is the one where the team is actually doing active work
-  // (highest-numbered sprint with at least one item in an active state). This is more
-  // reliable than "first incomplete sprint ascending", because stale/abandoned items
-  // left behind in old sprints (never formally closed) would otherwise make an old,
-  // dead sprint look like the current one.
-  const sprintsWithActiveWork = sprintsRaw.filter((s) => s.activeItems > 0);
-  const firstIncomplete = sprintsRaw.find((s) => s.phase !== "concluida");
-  const currentSprintNumber = sprintsWithActiveWork.length
-    ? sprintsWithActiveWork[sprintsWithActiveWork.length - 1].sprintNumber
-    : firstIncomplete
-    ? firstIncomplete.sprintNumber
-    : sprintsRaw.length
-    ? sprintsRaw[sprintsRaw.length - 1].sprintNumber
-    : null;
+  // The "current" sprint: prefer the sprint whose synced start/end dates
+  // actually contain today. Only fall back to the item-state heuristic when
+  // no sprint has usable date data (or none of the dated sprints contain
+  // today, e.g. a gap between sprints) — see doc-comment above.
+  const datedSprints = sprintsRaw.filter((s) => s.hasFullPeriod);
+  const currentByDate = datedSprints.find(
+    (s) => now >= (s.startDate as Date) && now <= (s.endDate as Date)
+  );
+
+  let currentSprintNumber: number | null;
+  if (currentByDate) {
+    currentSprintNumber = currentByDate.sprintNumber;
+  } else if (datedSprints.length > 0) {
+    // No sprint's range contains today (e.g. between sprints). Prefer the
+    // nearest upcoming one; otherwise the most recently concluded one.
+    const upcoming = datedSprints.find((s) => (s.startDate as Date) > now);
+    const pastOnes = datedSprints.filter((s) => (s.endDate as Date) < now);
+    currentSprintNumber = upcoming
+      ? upcoming.sprintNumber
+      : pastOnes.length
+      ? pastOnes[pastOnes.length - 1].sprintNumber
+      : null;
+  } else {
+    // No date data at all — original heuristic: the highest-numbered sprint
+    // with at least one item actively being worked on (more reliable than
+    // "first incomplete sprint ascending", since stale/abandoned items left
+    // behind in old sprints would otherwise make a dead sprint look current).
+    const sprintsWithActiveWork = sprintsRaw.filter((s) => s.activeItems > 0);
+    const firstIncomplete = sprintsRaw.find((s) => s.phase !== "concluida");
+    currentSprintNumber = sprintsWithActiveWork.length
+      ? sprintsWithActiveWork[sprintsWithActiveWork.length - 1].sprintNumber
+      : firstIncomplete
+      ? firstIncomplete.sprintNumber
+      : sprintsRaw.length
+      ? sprintsRaw[sprintsRaw.length - 1].sprintNumber
+      : null;
+  }
 
   // --- Second pass: compute schedule flags now that we know the current sprint ---
   for (const item of items) {
@@ -243,69 +309,66 @@ function buildPortfolio(items: WorkItem[], sourceFiles: string[], lastSyncedAt: 
       aheadItems: sprintItems.filter((i) => i.scheduleFlag === "ahead").length,
       phase: s.phase,
       isCurrent: s.sprintNumber === currentSprintNumber,
+      startDate: s.startDate ? s.startDate.toISOString() : null,
+      endDate: s.endDate ? s.endDate.toISOString() : null,
+      datesFromSchedule: s.hasFullPeriod,
     };
   });
 
   const backlog = items.filter((i) => i.sprintNumber === null);
-
-  const totalPoints = items.reduce((sum, i) => sum + (i.points ?? 0), 0);
-  const donePoints = items.filter((i) => i.stateGroup === "done").reduce((sum, i) => sum + (i.points ?? 0), 0);
-  const doneItemsCount = items.filter((i) => i.stateGroup === "done").length;
-  const activeItemsCount = items.filter((i) => i.stateGroup === "active").length;
-  const backlogItemsCount = items.filter((i) => i.stateGroup === "backlog").length;
-
-  const totals = {
-    totalItems: items.length,
-    doneItems: doneItemsCount,
-    activeItems: activeItemsCount,
-    backlogItems: backlogItemsCount,
-    totalPoints: round1(totalPoints),
-    donePoints: round1(donePoints),
-    pendingPoints: round1(totalPoints - donePoints),
-    lateItems: items.filter((i) => i.scheduleFlag === "late").length,
-    aheadItems: items.filter((i) => i.scheduleFlag === "ahead").length,
-    onTrackItems: items.filter((i) => i.scheduleFlag === "on-track").length,
-    pctDoneByPoints: totalPoints ? round1((donePoints / totalPoints) * 100) : 0,
-    pctDoneByItems: items.length ? round1((doneItemsCount / items.length) * 100) : 0,
-  };
-
-  const assigneeMap = new Map<string, { total: number; done: number; active: number; late: number; points: number }>();
-  for (const item of items) {
-    const name = item.assignee ?? "Não atribuído";
-    const entry = assigneeMap.get(name) ?? { total: 0, done: 0, active: 0, late: 0, points: 0 };
-    entry.total += 1;
-    if (item.stateGroup === "done") entry.done += 1;
-    if (item.stateGroup === "active") entry.active += 1;
-    if (item.scheduleFlag === "late") entry.late += 1;
-    if (item.stateGroup !== "done") entry.points += item.points ?? 0;
-    assigneeMap.set(name, entry);
-  }
-  const assignees = Array.from(assigneeMap.entries())
-    .map(([name, v]) => ({ name, ...v, points: round1(v.points) }))
-    .sort((a, b) => b.total - a.total);
 
   return {
     items,
     sprints,
     currentSprintNumber,
     backlog,
-    totals,
-    assignees,
+    totals: summarizeTotals(items),
+    assignees: summarizeAssignees(items),
     lastSyncedAt,
     sourceFiles,
   };
+}
+
+// summarizeTotals/summarizeAssignees/summarizeSprintItems now live in
+// lib/portfolio-summary.ts (imported and re-exported above) so that client
+// components can use them without pulling in this file's Node-only
+// dependencies (lib/parquet.ts's `fs` import, Prisma).
+
+/**
+ * Loads the synced Sprint N start/finish dates for `project` (empty for
+ * PARQUET/legacy projects, which have no SprintPeriod rows). Degrades to an
+ * empty map if the table isn't reachable yet, so pages keep working off the
+ * item-state heuristic instead of crashing.
+ */
+async function loadSprintPeriods(project: ProjectRecord): Promise<SprintPeriodMap> {
+  if (project.source !== "AZURE_DEVOPS") return new Map();
+  try {
+    const rows = await prisma.sprintPeriod.findMany({ where: { projectId: project.id } });
+    const map: SprintPeriodMap = new Map();
+    for (const row of rows) {
+      map.set(row.sprintNumber, { startDate: row.startDate, endDate: row.endDate });
+    }
+    return map;
+  } catch (err) {
+    console.error("Failed to load SprintPeriod rows:", err);
+    return new Map();
+  }
 }
 
 /**
  * Loads and aggregates the full portfolio for `project`. Projects with
  * source=PARQUET read straight from /data/*.parquet (the original,
  * file-based flow); projects with source=AZURE_DEVOPS read the rows last
- * written to Postgres by the "Sincronizar" action (lib/sync.ts).
+ * written to Postgres by the "Sincronizar" action (lib/sync.ts), plus each
+ * sprint's synced start/finish dates (used for calendar-accurate
+ * concluded/current status — see buildPortfolio above).
  */
 export async function getPortfolio(project: ProjectRecord): Promise<Portfolio> {
-  const { items, sourceFiles, lastSyncedAt } =
-    project.source === "AZURE_DEVOPS" ? await loadItemsFromDb(project) : await loadItemsFromParquet();
-  return buildPortfolio(items, sourceFiles, lastSyncedAt);
+  const [{ items, sourceFiles, lastSyncedAt }, periods] = await Promise.all([
+    project.source === "AZURE_DEVOPS" ? loadItemsFromDb(project) : loadItemsFromParquet(),
+    loadSprintPeriods(project),
+  ]);
+  return buildPortfolio(items, sourceFiles, lastSyncedAt, periods);
 }
 
 export interface WorkItemDetail {

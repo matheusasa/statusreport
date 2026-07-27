@@ -31,10 +31,11 @@ model Project {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  workItems    WorkItem[]
-  meetings     Meeting[]
-  projectInfo  ProjectInfo?
-  clientAccess ClientProjectAccess[]
+  workItems     WorkItem[]
+  meetings      Meeting[]
+  projectInfo   ProjectInfo?
+  clientAccess  ClientProjectAccess[]
+  sprintPeriods SprintPeriod[]
 
   @@index([source])
 }
@@ -49,6 +50,28 @@ model ProjectInfo {
   endDate   DateTime?
   notes     String?
   updatedAt DateTime  @updatedAt
+}
+
+/// Data de início/fim de cada sprint (iteration), sincronizada a partir das
+/// Iterations do Azure DevOps (ver lib/azure-devops.ts#fetchProjectIterations
+/// e lib/sync.ts). Usada para calcular, por calendário, se uma sprint já foi
+/// concluída e qual é a sprint atual — em vez de depender só do estado dos
+/// work items (ver lib/metrics.ts#buildPortfolio). Projetos legados (PARQUET)
+/// não têm linhas aqui e continuam usando a heurística antiga baseada em
+/// estado dos itens.
+model SprintPeriod {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  sprintNumber Int
+  startDate    DateTime?
+  endDate      DateTime?
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, sprintNumber])
+  @@index([projectId])
 }
 
 /// Work items sincronizados via API do Azure DevOps (apenas para projetos

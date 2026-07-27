@@ -17,5 +17,41 @@ services:
       timeout: 5s
       retries: 10
 
+  # Local S3 for meeting attachments (lib/s3.ts) — matches the
+  # AWS_S3_ENDPOINT="http://localhost:4566" / AWS_ACCESS_KEY_ID="test" /
+  # AWS_SECRET_ACCESS_KEY="test" defaults in .env.example. floci is a free,
+  # open-source, drop-in replacement for LocalStack (https://floci.io/aws/) —
+  # same port, same wire protocol, no auth token required.
+  floci:
+    image: floci/floci:latest
+    container_name: project-status-report-floci
+    restart: unless-stopped
+    ports:
+      - "4566:4566"
+    volumes:
+      - floci_data:/app/data
+      # Only needed if you end up using Floci services that launch real
+      # containers per call (Lambda, ECS, ...). Not required for plain S3.
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      FLOCI_STORAGE_MODE: persistent
+
+  # Visual dashboard for floci (browse buckets/objects, etc). Open
+  # http://localhost:3020 once both containers are up.
+  floci-ui:
+    image: floci/floci-ui:latest
+    container_name: project-status-report-floci-ui
+    restart: unless-stopped
+    ports:
+      - "3020:3000"
+    environment:
+      FLOCI_ENDPOINT: http://floci:4566
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    depends_on:
+      - floci
+
 volumes:
   db_data:
+  floci_data:
