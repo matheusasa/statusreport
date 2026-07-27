@@ -1,0 +1,261 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProjectSource {
+  /// Dados lidos diretamente dos arquivos .parquet em /data (projeto legado).
+  PARQUET
+  /// Dados sincronizados via API REST do Azure DevOps e armazenados na tabela WorkItem.
+  AZURE_DEVOPS
+}
+
+/// Um projeto acompanhado pelo dashboard. O projeto legado (Altana) usa
+/// source=PARQUET e continua lendo de /data como sempre fez. Novos projetos
+/// cadastrados pelo gerente usam source=AZURE_DEVOPS e têm seus work items
+/// sincronizados (via botão "Sincronizar") para a tabela WorkItem abaixo.
+model Project {
+  id                     String        @id @default(cuid())
+  name                   String
+  source                 ProjectSource @default(AZURE_DEVOPS)
+
+  /// Nome do projeto dentro da organização do Azure DevOps (System.TeamProject).
+  /// Obrigatório quando source = AZURE_DEVOPS.
+  azureDevOpsProjectName String?
+
+  lastSyncedAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  workItems    WorkItem[]
+  meetings     Meeting[]
+  projectInfo  ProjectInfo?
+  clientAccess ClientProjectAccess[]
+
+  @@index([source])
+}
+
+/// Metadados editáveis do projeto que não vêm do Azure DevOps, como
+/// data de início/fim. Um registro por Project (chave = projectId).
+model ProjectInfo {
+  projectId String   @id
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  startDate DateTime?
+  endDate   DateTime?
+  notes     String?
+  updatedAt DateTime  @updatedAt
+}
+
+/// Work items sincronizados via API do Azure DevOps (apenas para projetos
+/// com source = AZURE_DEVOPS). O id é o próprio System.Id do Azure DevOps,
+/// que é único dentro da organização (um único PAT/organização é usado
+/// para todos os projetos cadastrados).
+model WorkItem {
+  id        Int     @id
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  type     String
+  title    String
+  state    String
+  priority Int?
+
+  sprintPath String?
+  assignee   String?
+
+  points       Float?
+  hoursPlanned Float?
+  size         String?
+  parentId     Int?
+
+  createdDate      DateTime?
+  changedDate      DateTime?
+  stateChangedDate DateTime?
+  resolvedDate     DateTime?
+  closedDate       DateTime?
+
+  url String?
+
+  description        String?
+  acceptanceCriteria String?
+  qaValidation       String?
+  poApproval         String?
+  history            String?
+  risk               String?
+  valueArea          String?
+  reason             String?
+
+  createdBy    String?
+  changedBy    String?
+  closedBy     String?
+  resolvedBy   String?
+  commentCount Int?
+
+  syncedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([projectId, sprintPath])
+  @@index([parentId])
+}
+
+model Meeting {
+  id           String   @id @default(cuid())
+  projectId    String
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  title        String
+  meetingDate  DateTime
+  startTime    String?
+  endTime      String?
+  location     String?
+  participants String[] @default([])
+
+  /// Pauta da reunião (o que será discutido)
+  agenda String?
+
+  /// Ata da reunião (o que foi decidido/registrado)
+  minutes String?
+
+  /// Vínculo opcional com uma sprint ou demanda do projeto (mesmo escopo
+  /// de projectId). Não é uma foreign key para WorkItem porque o projeto
+  /// legado (parquet) não tem os work items no banco.
+  sprintNumber Int?
+  workItemId   Int?
+
+  /// Reuniões nascem como rascunho (visível só para admin/gerente) até
+  /// serem publicadas — só então aparecem para clientes e disparam o email
+  /// de notificação (ver lib/email.ts). Publicadas podem depois ser
+  /// arquivadas (ainda visíveis a clientes, só organizadas à parte).
+  status      MeetingStatus @default(DRAFT)
+  publishedAt DateTime?
+  archivedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  attachments MeetingAttachment[]
+
+  @@index([projectId])
+  @@index([meetingDate])
+  @@index([sprintNumber])
+  @@index([workItemId])
+  @@index([status])
+}
+
+enum MeetingStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model MeetingAttachment {
+  id         String   @id @default(cuid())
+  meeting    Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  meetingId  String
+  fileName   String
+  filePath   String
+  fileSize   Int
+  mimeType   String
+  uploadedAt DateTime @default(now())
+
+  @@index([meetingId])
+}
+
+// ---------------------------------------------------------------------------
+// Auth (Better Auth) — email/password only, invite-only (no public sign-up).
+// Schema follows Better Auth's Prisma adapter conventions; `role`/`banned*`
+// fields are added by the `admin` plugin (see lib/auth.ts).
+// ---------------------------------------------------------------------------
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  CLIENT
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  role          UserRole  @default(CLIENT)
+  banned        Boolean?  @default(false)
+  banReason     String?
+  banExpires    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sessions      Session[]
+  accounts      Account[]
+  projectAccess ClientProjectAccess[]
+
+  @@map("user")
+}
+
+model Session {
+  id             String   @id @default(cuid())
+  userId         String
+  token          String   @unique
+  expiresAt      DateTime
+  ipAddress      String?
+  userAgent      String?
+  impersonatedBy String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+
+  @@map("verification")
+}
+
+/// Quais projetos um usuário (cliente OU gerente) pode ver. Apenas admins
+/// enxergam todos os projetos automaticamente e não precisam de linhas aqui
+/// — ver lib/projects.ts#listAccessibleProjects.
+model ClientProjectAccess {
+  id        String @id @default(cuid())
+  userId    String
+  projectId String
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
+  @@index([projectId])
+}

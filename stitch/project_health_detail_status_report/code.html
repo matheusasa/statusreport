@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Azure Status Hub | Project Health Report</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-tint": "#d6baff",
+                    "primary-fixed": "#ecdcff",
+                    "on-secondary-fixed": "#111939",
+                    "error-container": "#93000a",
+                    "tertiary-fixed": "#ece85b",
+                    "surface-container-highest": "#37333a",
+                    "surface-container-high": "#2c292f",
+                    "inverse-on-surface": "#332f36",
+                    "primary-container": "#bf95ff",
+                    "outline-variant": "#4a4451",
+                    "on-primary": "#41127b",
+                    "secondary-fixed": "#dde1ff",
+                    "on-surface": "#e7e0e9",
+                    "surface-container-lowest": "#100d13",
+                    "surface-bright": "#3b383f",
+                    "secondary-container": "#40476a",
+                    "tertiary-container": "#b1ae23",
+                    "secondary": "#bdc4ee",
+                    "primary": "#d6baff",
+                    "surface-container": "#211e25",
+                    "tertiary": "#cfcc41",
+                    "on-error": "#690005",
+                    "inverse-primary": "#7149ad",
+                    "inverse-surface": "#e7e0e9",
+                    "surface-dim": "#151218",
+                    "on-background": "#e7e0e9",
+                    "on-secondary-fixed-variant": "#3d4567",
+                    "on-primary-container": "#4f258a",
+                    "primary-fixed-dim": "#d6baff",
+                    "outline": "#968e9c",
+                    "surface-container-low": "#1d1a21",
+                    "surface": "#151218",
+                    "on-tertiary-container": "#414000",
+                    "on-surface-variant": "#ccc3d3",
+                    "tertiary-fixed-dim": "#cfcc41",
+                    "surface-variant": "#37333a",
+                    "on-tertiary-fixed": "#1d1d00",
+                    "on-primary-fixed": "#280056",
+                    "secondary-fixed-dim": "#bdc4ee",
+                    "on-secondary": "#272e50",
+                    "on-error-container": "#ffdad6",
+                    "on-secondary-container": "#afb6df",
+                    "on-tertiary-fixed-variant": "#4a4900",
+                    "error": "#ffb4ab",
+                    "on-primary-fixed-variant": "#582f93",
+                    "on-tertiary": "#333200",
+                    "background": "#151218"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "unit": "4px",
+                    "margin-mobile": "16px",
+                    "margin-desktop": "32px",
+                    "max-width": "1440px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "body-lg": ["IBM Plex Sans"],
+                    "label-mono": ["JetBrains Mono"],
+                    "headline-md": ["IBM Plex Sans"],
+                    "headline-lg": ["IBM Plex Sans"],
+                    "body-md": ["IBM Plex Sans"]
+            },
+            "fontSize": {
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-mono": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg": ["30px", {"lineHeight": "38px", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #151218;
+            color: #e7e0e9;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #151218;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #4a4451;
+            border-radius: 2px;
+        }
+        .bento-card {
+            border: 1px solid #4a4451;
+            background-color: #1d1a21;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+<!-- SideNavBar Anchor -->
+<aside class="h-screen w-64 fixed left-0 top-0 border-r border-outline-variant bg-surface flex flex-col py-margin-desktop z-40 hidden md:flex">
+<div class="px-6 mb-10">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">Azure Status Hub</h1>
+<p class="font-label-mono text-label-mono text-on-surface-variant opacity-70">Enterprise Infrastructure</p>
+</div>
+<nav class="flex-1 px-4 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-mono text-label-mono">Portfolio</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary border-r-2 border-primary bg-surface-container-low transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">folder_shared</span>
+<span class="font-label-mono text-label-mono">Projects</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">list_alt</span>
+<span class="font-label-mono text-label-mono">Work Items</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-mono text-label-mono">Settings</span>
+</a>
+</nav>
+<div class="px-4 mt-auto">
+<button class="w-full py-3 px-4 bg-primary text-on-primary font-bold rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">add</span>
+<span class="font-label-mono text-label-mono">Create Report</span>
+</button>
+</div>
+</aside>
+<!-- TopAppBar Anchor -->
+<header class="fixed top-0 right-0 left-0 md:left-64 h-16 bg-surface border-b border-outline-variant flex justify-between items-center px-margin-mobile md:px-margin-desktop z-30">
+<div class="flex items-center gap-4">
+<span class="md:hidden font-bold text-primary font-headline-md">ASH</span>
+<div class="hidden md:flex items-center gap-2 text-on-surface-variant">
+<span class="font-label-mono text-label-mono">Projects</span>
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+<span class="font-label-mono text-label-mono text-primary font-bold">Project Health Report</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
+<input class="bg-surface-container-low border border-outline-variant rounded-full pl-10 pr-4 py-1.5 text-sm focus:border-primary focus:ring-0 w-64 transition-all" placeholder="Search systems..." type="text"/>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors scale-95 active:scale-90">notifications</button>
+<div class="h-8 w-8 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional studio headshot of a corporate executive in a dark navy suit against a soft-lit, minimalist grey background. The lighting is crisp and modern, reflecting a high-authority enterprise aesthetic consistent with a mission-critical infrastructure software interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDXIEWJdij7Cnj9lu9AZDkzFrkPf7rH9lMNa-jryERVilzsxMtRLoOItP72zVorb0GU4H3ZbZtfQRUnsC2OwopynIqDF6CgORQiN_6uiFWGcsHuArAh6NA_xoTnD-RY5DR7d8sx-c0VXuFmA4Nxw6KpXm46y4Rp_VWjQ2F-zQdCGixFDh82S7_bbJkZpHtIn7ejnO5Mlt2dxup9uvrk7eoYdfBxBiGj52OPArNtPNGsE9IePwU-K6kg-A"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="pt-24 pb-20 md:pb-8 px-margin-mobile md:px-margin-desktop ml-0 md:ml-64 max-w-full">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter max-w-max-width mx-auto">
+<!-- Page Header / Identity -->
+<div class="lg:col-span-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Project Aurora: Cloud Migration</h2>
+<p class="text-on-surface-variant font-body-md mt-1">Status Report: Q3 Infrastructure Modernization Phase</p>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 border border-outline-variant rounded-lg text-on-surface-variant flex items-center gap-2 hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-sm">download</span>
+<span class="font-label-mono text-label-mono">Export PDF</span>
+</button>
+<button class="px-4 py-2 bg-primary text-on-primary rounded-lg font-bold flex items-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-sm">share</span>
+<span class="font-label-mono text-label-mono">Share Report</span>
+</button>
+</div>
+</div>
+<!-- Bento Left: Summary & Stepper -->
+<div class="lg:col-span-8 space-y-gutter">
+<!-- Timeline & Milestones Stepper -->
+<section class="bento-card p-6 rounded-xl">
+<h3 class="font-label-mono text-label-mono text-primary uppercase mb-8">Timeline &amp; Milestones</h3>
+<div class="relative flex justify-between items-start">
+<!-- Progress Line -->
+<div class="absolute top-5 left-0 w-full h-0.5 bg-outline-variant z-0"></div>
+<div class="absolute top-5 left-0 w-[66%] h-0.5 bg-primary z-0 transition-all duration-1000"></div>
+<!-- Step 1 -->
+<div class="relative z-10 flex flex-col items-center text-center w-1/4">
+<div class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center mb-4">
+<span class="material-symbols-outlined">check</span>
+</div>
+<span class="font-label-mono text-label-mono font-bold text-on-surface">Discovery</span>
+<span class="text-[10px] text-on-surface-variant mt-1">COMPLETED JAN 12</span>
+</div>
+<!-- Step 2 -->
+<div class="relative z-10 flex flex-col items-center text-center w-1/4">
+<div class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center mb-4">
+<span class="material-symbols-outlined">check</span>
+</div>
+<span class="font-label-mono text-label-mono font-bold text-on-surface">Development</span>
+<span class="text-[10px] text-on-surface-variant mt-1">COMPLETED MAR 04</span>
+</div>
+<!-- Step 3 -->
+<div class="relative z-10 flex flex-col items-center text-center w-1/4">
+<div class="w-10 h-10 rounded-full border-4 border-surface bg-primary text-on-primary flex items-center justify-center mb-4 ring-2 ring-primary">
+<span class="material-symbols-outlined">bolt</span>
+</div>
+<span class="font-label-mono text-label-mono font-bold text-primary">Testing</span>
+<span class="text-[10px] text-primary mt-1">IN PROGRESS</span>
+</div>
+<!-- Step 4 -->
+<div class="relative z-10 flex flex-col items-center text-center w-1/4">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest border border-outline-variant text-on-surface-variant flex items-center justify-center mb-4">
+<span class="material-symbols-outlined">rocket_launch</span>
+</div>
+<span class="font-label-mono text-label-mono font-bold text-on-surface-variant">Launch</span>
+<span class="text-[10px] text-on-surface-variant mt-1">EST MAY 2024</span>
+</div>
+</div>
+</section>
+<!-- Executive Summary & Achievements -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Achievements -->
+<div class="bento-card p-6 rounded-xl border-l-4 border-l-tertiary">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-tertiary">verified_user</span>
+<h3 class="font-headline-md text-[18px] text-on-surface">Key Achievements</h3>
+</div>
+<ul class="space-y-4">
+<li class="flex gap-3">
+<span class="material-symbols-outlined text-tertiary text-lg mt-0.5">add_task</span>
+<div>
+<p class="font-label-mono text-label-mono text-on-surface">Data Migration Complete</p>
+<p class="text-on-surface-variant text-sm">Successfully moved 450TB of legacy data to primary clusters without downtime.</p>
+</div>
+</li>
+<li class="flex gap-3">
+<span class="material-symbols-outlined text-tertiary text-lg mt-0.5">add_task</span>
+<div>
+<p class="font-label-mono text-label-mono text-on-surface">Security Audit Pass</p>
+<p class="text-on-surface-variant text-sm">Level 4 compliance verified by third-party infrastructure inspectors.</p>
+</div>
+</li>
+</ul>
+</div>
+<!-- Blockers -->
+<div class="bento-card p-6 rounded-xl border-l-4 border-l-error">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-error">report</span>
+<h3 class="font-headline-md text-[18px] text-on-surface">Critical Blockers</h3>
+</div>
+<div class="bg-error-container/20 p-4 rounded border border-error/30">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-mono text-label-mono text-error font-bold">Latency Spike: Edge Node 4</span>
+<span class="px-2 py-0.5 bg-error text-[10px] text-on-error font-bold rounded">HIGH PRIO</span>
+</div>
+<p class="text-on-surface-variant text-sm">Unidentified traffic bottleneck in US-EAST-1 cluster during stress testing. Investigations ongoing with networking team.</p>
+</div>
+</div>
+</section>
+<!-- Health Metrics -->
+<section class="bento-card p-6 rounded-xl relative overflow-hidden h-48">
+
+<div class="relative z-10 flex flex-col h-full justify-between">
+<div class="flex justify-between items-center">
+<h3 class="font-label-mono text-label-mono text-on-surface-variant">System Stability Index</h3>
+<span class="text-primary font-headline-md">98.4%</span>
+</div>
+<div class="flex items-end gap-1 h-20">
+<div class="flex-1 bg-primary/20 h-[60%] hover:bg-primary transition-all rounded-t-sm"></div>
+<div class="flex-1 bg-primary/20 h-[65%] hover:bg-primary transition-all rounded-t-sm"></div>
+<div class="flex-1 bg-primary/20 h-[58%] hover:bg-primary transition-all rounded-t-sm"></div>
+<div class="flex-1 bg-primary/20 h-[72%] hover:bg-primary transition-all rounded-t-sm"></div>
+<div class="flex-1 bg-primary/20 h-[85%] hover:bg-primary transition-all rounded-t-sm"></div>
+<div class="flex-1 bg-primary/20 h-[92%] hover:bg-primary transition-all rounded-t-sm"></div>
+<div class="flex-1 bg-primary/40 h-[100%] hover:bg-primary transition-all rounded-t-sm"></div>
+<div class="flex-1 bg-primary/20 h-[88%] hover:bg-primary transition-all rounded-t-sm"></div>
+<div class="flex-1 bg-primary/20 h-[82%] hover:bg-primary transition-all rounded-t-sm"></div>
+<div class="flex-1 bg-primary/20 h-[95%] hover:bg-primary transition-all rounded-t-sm"></div>
+</div>
+</div>
+</section>
+</div>
+<!-- Sidebar -->
+<div class="lg:col-span-4 space-y-gutter">
+<!-- Project State Card -->
+<div class="bento-card p-6 rounded-xl">
+<h3 class="font-label-mono text-label-mono text-on-surface-variant uppercase mb-6">Metadata</h3>
+<div class="space-y-6">
+<div class="flex justify-between items-center pb-4 border-b border-outline-variant">
+<span class="text-on-surface-variant">Current State</span>
+<div class="flex items-center gap-2 text-primary">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="font-label-mono text-label-mono font-bold">Healthy / Active</span>
+</div>
+</div>
+<div class="flex justify-between items-center pb-4 border-b border-outline-variant">
+<span class="text-on-surface-variant">Priority Level</span>
+<div class="flex items-center gap-2 text-error">
+<span class="material-symbols-outlined text-lg">priority_high</span>
+<span class="font-label-mono text-label-mono font-bold">Critical</span>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant">Budget Burn</span>
+<span class="font-label-mono text-label-mono text-on-surface">64.2%</span>
+</div>
+</div>
+</div>
+<!-- Stakeholders List -->
+<div class="bento-card p-6 rounded-xl">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-label-mono text-label-mono text-on-surface-variant uppercase">Stakeholders</h3>
+<span class="text-xs text-primary cursor-pointer hover:underline">View Directory</span>
+</div>
+<div class="space-y-4">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 rounded bg-secondary-container flex items-center justify-center text-secondary font-bold">JD</div>
+<div>
+<p class="font-body-md text-on-surface leading-tight">Janet Denson</p>
+<p class="text-[11px] text-on-surface-variant font-label-mono">VP, Infrastructure</p>
+</div>
+<span class="material-symbols-outlined ml-auto text-on-surface-variant text-lg">chat</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 rounded overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A portrait of a male tech lead with a clean-cut look and glasses, wearing a neutral grey polo. The background is a blurred corporate office with cool, dark blue lighting consistent with the mission-critical Azure Status Hub theme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUDotyviSKj7ouPnK1aj1yuO4Y_JCeCqrxwP5KAaNqV8Nt2MSqd7Fl_-L17dWA0GbpWtz3ksb5ukEF9CktS328IKQ4TAjjWjeChytyDFquw15K8jX5aObEMmvAJUzv7ozuUzgDqWMtzMP_XXmr4nMhS8BBibwP0SN5hziakwNcXTIEx_RPlTC1lo9rPPxXV2zU2i9LHHNNKKcSDkbkBER8VBvMp4s3xYZIkx4b67kFY_nWbJcrfMOZtQ"/>
+</div>
+<div>
+<p class="font-body-md text-on-surface leading-tight">Marcus Thorne</p>
+<p class="text-[11px] text-on-surface-variant font-label-mono">Lead DevOps Eng</p>
+</div>
+<span class="material-symbols-outlined ml-auto text-on-surface-variant text-lg">chat</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 rounded bg-tertiary-container flex items-center justify-center text-on-tertiary-container font-bold">SL</div>
+<div>
+<p class="font-body-md text-on-surface leading-tight">Sarah Long</p>
+<p class="text-[11px] text-on-surface-variant font-label-mono">Product Owner</p>
+</div>
+<span class="material-symbols-outlined ml-auto text-on-surface-variant text-lg">chat</span>
+</div>
+</div>
+<button class="w-full mt-6 py-2 border border-dashed border-outline-variant rounded-lg text-on-surface-variant hover:border-primary hover:text-primary transition-all text-sm font-label-mono flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">person_add</span>
+                        Invite Stakeholder
+                    </button>
+</div>
+<!-- Recent Activity Mini Feed -->
+<div class="bento-card p-6 rounded-xl">
+<h3 class="font-label-mono text-label-mono text-on-surface-variant uppercase mb-4">Live Activity</h3>
+<div class="space-y-4 border-l border-outline-variant ml-2 pl-4">
+<div class="relative">
+<span class="absolute -left-[21px] top-1.5 w-2 h-2 rounded-full bg-primary"></span>
+<p class="text-xs text-on-surface-variant">14 mins ago</p>
+<p class="text-sm text-on-surface mt-0.5">Deployment to <span class="font-label-mono text-primary">Staging-02</span> successful.</p>
+</div>
+<div class="relative opacity-60">
+<span class="absolute -left-[21px] top-1.5 w-2 h-2 rounded-full bg-outline-variant"></span>
+<p class="text-xs text-on-surface-variant">2 hours ago</p>
+<p class="text-sm text-on-surface mt-0.5">Critical Blocker updated by Marcus Thorne.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar Anchor (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center bg-surface-container border-t border-outline-variant px-margin-mobile py-2 md:hidden">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-mono text-[10px] mt-1">Portfolio</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1" href="#">
+<span class="material-symbols-outlined">folder_shared</span>
+<span class="font-label-mono text-[10px] mt-1">Projects</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1" href="#">
+<span class="material-symbols-outlined">list_alt</span>
+<span class="font-label-mono text-[10px] mt-1">Items</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-mono text-[10px] mt-1">Settings</span>
+</a>
+</nav>
+<script>
+        // Micro-interaction: Update budget burn bar on scroll or load
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('Project Health Report Initialized');
+        });
+
+        // Simple button active state visual feedback
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('mousedown', () => btn.classList.add('scale-95'));
+            btn.addEventListener('mouseup', () => btn.classList.remove('scale-95'));
+            btn.addEventListener('mouseleave', () => btn.classList.remove('scale-95'));
+        });
+    </script>
+</body></html>

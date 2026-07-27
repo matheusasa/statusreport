@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DevOps Pulse - Work Items</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-high": "#2c292f",
+                    "on-primary-container": "#4f258a",
+                    "on-surface": "#e7e0e9",
+                    "background": "#000526",
+                    "on-tertiary": "#333200",
+                    "surface-container-highest": "#37333a",
+                    "tertiary-fixed": "#ece85b",
+                    "on-error-container": "#ffdad6",
+                    "on-error": "#690005",
+                    "secondary-fixed": "#dde1ff",
+                    "surface-variant": "#37333a",
+                    "inverse-on-surface": "#332f36",
+                    "inverse-primary": "#7149ad",
+                    "on-tertiary-fixed": "#1d1d00",
+                    "surface-dim": "#151218",
+                    "tertiary": "#cfcc41",
+                    "tertiary-container": "#b1ae23",
+                    "surface-container-lowest": "#100d13",
+                    "primary": "#d6baff",
+                    "on-secondary-fixed-variant": "#3d4567",
+                    "primary-fixed": "#ecdcff",
+                    "on-tertiary-container": "#414000",
+                    "on-primary": "#41127b",
+                    "primary-container": "#bf95ff",
+                    "on-surface-variant": "#ccc3d3",
+                    "secondary-fixed-dim": "#bdc4ee",
+                    "surface": "#151218",
+                    "inverse-surface": "#e7e0e9",
+                    "primary-fixed-dim": "#d6baff",
+                    "on-background": "#e7e0e9",
+                    "on-secondary": "#272e50",
+                    "outline": "#968e9c",
+                    "error": "#ffb4ab",
+                    "on-secondary-fixed": "#111939",
+                    "surface-container": "#211e25",
+                    "secondary-container": "#40476a",
+                    "surface-tint": "#d6baff",
+                    "outline-variant": "#4a4451",
+                    "surface-container-low": "#1d1a21",
+                    "surface-bright": "#3b383f",
+                    "tertiary-fixed-dim": "#cfcc41",
+                    "on-primary-fixed-variant": "#582f93",
+                    "secondary": "#bdc4ee",
+                    "error-container": "#93000a",
+                    "on-primary-fixed": "#280056",
+                    "on-tertiary-fixed-variant": "#4a4900",
+                    "on-secondary-container": "#afb6df",
+                    "secondary-surface": "#cccccc"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "margin-mobile": "16px",
+                    "gutter": "16px",
+                    "unit": "4px",
+                    "margin-desktop": "32px",
+                    "max-width": "1440px"
+            },
+            "fontFamily": {
+                    "body-md": ["IBM Plex Sans"],
+                    "headline-lg": ["IBM Plex Sans"],
+                    "label-mono": ["JetBrains Mono"],
+                    "body-lg": ["IBM Plex Sans"],
+                    "headline-md": ["IBM Plex Sans"]
+            },
+            "fontSize": {
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg": ["30px", {"lineHeight": "38px", "fontWeight": "600"}],
+                    "label-mono": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'IBM Plex Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #4a4451;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="hidden md:flex flex-col w-64 bg-surface border-r border-outline-variant h-screen sticky top-0 z-40">
+<div class="px-margin-desktop py-8">
+<h1 class="font-headline-md text-headline-md text-primary tracking-tight">DevOps Pulse</h1>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-4 px-4 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-body-md text-body-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-2 rounded-lg bg-secondary-container text-on-secondary-container font-semibold transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="list_alt">list_alt</span>
+<span class="font-body-md text-body-md">Work Items</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="account_tree">account_tree</span>
+<span class="font-body-md text-body-md">Projects</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-body-md text-body-md">Settings</span>
+</a>
+</nav>
+<div class="p-4 border-t border-outline-variant mt-auto">
+<div class="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-container-high cursor-pointer transition-colors">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-primary-container flex items-center justify-center text-on-primary-container font-bold text-xs">
+                JD
+            </div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md">John Doe</span>
+<span class="text-[10px] text-outline">Lead Architect</span>
+</div>
+<span class="material-symbols-outlined ml-auto text-[18px]" data-icon="settings_suggest">settings_suggest</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col h-screen overflow-hidden">
+<!-- Header -->
+<header class="flex items-center justify-between px-margin-desktop py-4 bg-surface border-b border-outline-variant sticky top-0 z-30">
+<div class="flex items-center gap-4">
+<h2 class="font-headline-md text-headline-md text-on-surface">Work Items</h2>
+<div class="h-6 w-px bg-outline-variant mx-2"></div>
+<nav class="flex gap-2">
+<button class="px-4 py-1 bg-secondary-container text-on-secondary-container rounded-full font-body-md text-body-md">Assigned to Me</button>
+<button class="px-4 py-1 hover:bg-surface-container-high text-on-surface-variant rounded-full font-body-md text-body-md transition-colors">Recently Updated</button>
+<button class="px-4 py-1 hover:bg-surface-container-high text-on-surface-variant rounded-full font-body-md text-body-md transition-colors">All Items</button>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg font-body-md text-body-md w-64 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" placeholder="Search items..." type="text"/>
+</div>
+<button class="flex items-center gap-1 bg-primary text-on-primary px-6 py-2 rounded-lg hover:shadow-lg transition-all active:scale-95">
+<span class="material-symbols-outlined text-[20px]" data-icon="add">add</span>
+<span class="font-body-md text-body-md font-semibold">New Work Item</span>
+</button>
+</div>
+</header>
+<!-- Content Canvas -->
+<section class="flex-1 overflow-y-auto custom-scrollbar p-margin-desktop bg-background">
+<!-- Table Container -->
+<div class="bg-surface rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.5)] border border-outline-variant overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead class="bg-secondary-surface border-b border-outline-variant">
+<tr>
+<th class="px-6 py-4 font-label-mono text-label-mono text-on-surface/70 uppercase tracking-wider w-24">ID</th>
+<th class="px-6 py-4 font-label-mono text-label-mono text-on-surface/70 uppercase tracking-wider">Title</th>
+<th class="px-6 py-4 font-label-mono text-label-mono text-on-surface/70 uppercase tracking-wider w-32 text-center">Status</th>
+<th class="px-6 py-4 font-label-mono text-label-mono text-on-surface/70 uppercase tracking-wider w-48">Assignee</th>
+<th class="px-6 py-4 font-label-mono text-label-mono text-on-surface/70 uppercase tracking-wider w-64">Progress</th>
+<th class="px-6 py-4 font-label-mono text-label-mono text-on-surface/70 uppercase tracking-wider w-16"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-6 font-body-md text-body-md text-outline">#DE-8921</td>
+<td class="px-6 py-6">
+<div class="flex flex-col">
+<span class="font-body-lg text-body-lg font-semibold text-on-surface">Implement OAuth2 Authentication Flow</span>
+<span class="text-xs text-outline">Project: Security Shield • Infrastructure</span>
+</div>
+</td>
+<td class="px-6 py-6 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[10px] font-bold uppercase tracking-tighter">In Progress</span>
+</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-3">
+<img alt="Sarah Jenkins" class="w-7 h-7 rounded-full bg-surface-container-highest" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtQS91yHS1K_1Asb-VtXzVIEInFqz4KCMsvRw87hody3z66MbozhX-etdRrbDi4geB7816wbLVfPPOOWkrVJonFg4fZtfG0EcZWbXq9AB0cD5VloH4lArmTwfPOCBZx0e2FYvia5K-yODE6vi_86IOYDNPfAL1K71bgB0Ky1xd4IxnY3ZbHwhtR-Q6ebuUOxpWDaTS5b-0v_HW7nBGxq-tkaJjzh8PCLP_5V8-HRYQ84Sn_9F3W8JscQ"/>
+<span class="font-body-md text-body-md">Sarah Jenkins</span>
+</div>
+</td>
+<td class="px-6 py-6">
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-[11px] font-medium text-outline">
+<span>Development</span>
+<span>65%</span>
+</div>
+<div class="w-full h-1 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all duration-700" style="width: 65%;"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-6 text-right">
+<button class="p-2 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-outline" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-6 font-body-md text-body-md text-outline">#DE-9004</td>
+<td class="px-6 py-6">
+<div class="flex flex-col">
+<span class="font-body-lg text-body-lg font-semibold text-on-surface">Optimize Kubernetes Node Scaling</span>
+<span class="text-xs text-outline">Project: Cloud Ops • DevOps</span>
+</div>
+</td>
+<td class="px-6 py-6 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-tertiary/20 text-tertiary text-[10px] font-bold uppercase tracking-tighter">Review</span>
+</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container text-[10px] font-bold">MK</div>
+<span class="font-body-md text-body-md">Marcus Kane</span>
+</div>
+</td>
+<td class="px-6 py-6">
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-[11px] font-medium text-outline">
+<span>Analysis</span>
+<span>90%</span>
+</div>
+<div class="w-full h-1 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all duration-700" style="width: 90%;"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-6 text-right">
+<button class="p-2 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-outline" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-6 font-body-md text-body-md text-outline">#DE-7732</td>
+<td class="px-6 py-6">
+<div class="flex flex-col">
+<span class="font-body-lg text-body-lg font-semibold text-on-surface">Fix Memory Leak in Analytics Engine</span>
+<span class="text-xs text-outline">Project: Data Core • Critical</span>
+</div>
+</td>
+<td class="px-6 py-6 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-error/20 text-error text-[10px] font-bold uppercase tracking-tighter">Blocked</span>
+</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-3">
+<img alt="David Chen" class="w-7 h-7 rounded-full bg-surface-container-highest" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBH-oJ3xAZXikIkbOV90UZjl32bCGCpxB8IsSWqgkNoy2jqTSPOEmRhPIjKjbPSkKYqZmE0Fq4TrUpDEAU0Ph0OgnU9D4WBOAV5UgZ58Meo75MjeeBDFDgRqLkSIVvJItGCETwZScPwXib9IjJHKMLRC4CVLXNMMgcDmwB-jsIM8KByU85KS9BdeF61rgiH46Wfeyw2H_-Qvk54TAgzBFDi86agihhQbSGXOnuH6tzywjvIS562jLDrYw"/>
+<span class="font-body-md text-body-md">David Chen</span>
+</div>
+</td>
+<td class="px-6 py-6">
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-[11px] font-medium text-outline">
+<span>Debugging</span>
+<span>15%</span>
+</div>
+<div class="w-full h-1 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-error rounded-full transition-all duration-700" style="width: 15%;"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-6 text-right">
+<button class="p-2 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-outline" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-6 font-body-md text-body-md text-outline">#DE-9102</td>
+<td class="px-6 py-6">
+<div class="flex flex-col">
+<span class="font-body-lg text-body-lg font-semibold text-on-surface">Upgrade CI/CD Pipeline to v4.2</span>
+<span class="text-xs text-outline">Project: DevOps Pulse • Maintenance</span>
+</div>
+</td>
+<td class="px-6 py-6 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-[10px] font-bold uppercase tracking-tighter">Completed</span>
+</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container text-[10px] font-bold">JD</div>
+<span class="font-body-md text-body-md">John Doe</span>
+</div>
+</td>
+<td class="px-6 py-6">
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-[11px] font-medium text-outline">
+<span>Deployment</span>
+<span>100%</span>
+</div>
+<div class="w-full h-1 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all duration-700" style="width: 100%;"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-6 text-right">
+<button class="p-2 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-outline" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-6 font-body-md text-body-md text-outline">#DE-8839</td>
+<td class="px-6 py-6">
+<div class="flex flex-col">
+<span class="font-body-lg text-body-lg font-semibold text-on-surface">Draft Disaster Recovery Documentation</span>
+<span class="text-xs text-outline">Project: Governance • Documentation</span>
+</div>
+</td>
+<td class="px-6 py-6 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant text-[10px] font-bold uppercase tracking-tighter">Backlog</span>
+</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-3 text-outline italic">
+<span class="material-symbols-outlined text-[18px]" data-icon="person_add">person_add</span>
+<span class="font-body-md text-body-md">Unassigned</span>
+</div>
+</td>
+<td class="px-6 py-6">
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-[11px] font-medium text-outline">
+<span>Not Started</span>
+<span>0%</span>
+</div>
+<div class="w-full h-1 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all duration-700" style="width: 0%;"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-6 text-right">
+<button class="p-2 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-outline" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Footer Pagination -->
+<div class="mt-8 flex items-center justify-between">
+<p class="font-body-md text-body-md text-outline">Showing 5 of 128 items</p>
+<div class="flex items-center gap-2">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface transition-colors disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-[20px]" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-on-primary font-body-md text-body-md font-semibold">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface transition-colors font-body-md text-body-md">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface transition-colors font-body-md text-body-md">3</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Mobile Nav -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-1 py-2 bg-surface border-t border-outline-variant z-50">
+<div class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-[10px]">Dashboard</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-4 py-1">
+<span class="material-symbols-outlined" data-icon="list_alt">list_alt</span>
+<span class="text-[10px]">Work Items</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="account_tree">account_tree</span>
+<span class="text-[10px]">Projects</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-[10px]">Settings</span>
+</div>
+</nav>
+<script>
+    // Micro-interactions
+    document.querySelectorAll('tr').forEach(row => {
+        row.addEventListener('mouseenter', () => {
+            const bar = row.querySelector('.h-full');
+            if (bar) bar.style.filter = 'brightness(1.2)';
+        });
+        row.addEventListener('mouseleave', () => {
+            const bar = row.querySelector('.h-full');
+            if (bar) bar.style.filter = 'none';
+        });
+    });
+
+    // Filter button toggles
+    const filterBtns = document.querySelectorAll('header nav button');
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            filterBtns.forEach(b => {
+                b.classList.remove('bg-secondary-container', 'text-on-secondary-container');
+                b.classList.add('hover:bg-surface-container-high', 'text-on-surface-variant');
+            });
+            btn.classList.add('bg-secondary-container', 'text-on-secondary-container');
+            btn.classList.remove('hover:bg-surface-container-high', 'text-on-surface-variant');
+        });
+    });
+</script>
+</body></html>

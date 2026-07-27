@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Azure Status Hub | Executive Portfolio</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        :root {
+            --background: #000526;
+        }
+        body {
+            background-color: var(--background);
+            color: #e7e0e9;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(33, 30, 37, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid #4a4451;
+        }
+        .status-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#d6baff",
+                        "primary-fixed": "#ecdcff",
+                        "on-secondary-fixed": "#111939",
+                        "error-container": "#93000a",
+                        "tertiary-fixed": "#ece85b",
+                        "surface-container-highest": "#37333a",
+                        "surface-container-high": "#2c292f",
+                        "inverse-on-surface": "#332f36",
+                        "primary-container": "#bf95ff",
+                        "outline-variant": "#4a4451",
+                        "on-primary": "#41127b",
+                        "secondary-fixed": "#dde1ff",
+                        "on-surface": "#e7e0e9",
+                        "surface-container-lowest": "#100d13",
+                        "surface-bright": "#3b383f",
+                        "secondary-container": "#40476a",
+                        "tertiary-container": "#b1ae23",
+                        "secondary": "#bdc4ee",
+                        "primary": "#d6baff",
+                        "surface-container": "#211e25",
+                        "tertiary": "#cfcc41",
+                        "on-error": "#690005",
+                        "inverse-primary": "#7149ad",
+                        "inverse-surface": "#e7e0e9",
+                        "surface-dim": "#151218",
+                        "on-background": "#e7e0e9",
+                        "on-secondary-fixed-variant": "#3d4567",
+                        "on-primary-container": "#4f258a",
+                        "primary-fixed-dim": "#d6baff",
+                        "outline": "#968e9c",
+                        "surface-container-low": "#1d1a21",
+                        "surface": "#151218",
+                        "on-tertiary-container": "#414000",
+                        "on-surface-variant": "#ccc3d3",
+                        "tertiary-fixed-dim": "#cfcc41",
+                        "surface-variant": "#37333a",
+                        "on-tertiary-fixed": "#1d1d00",
+                        "on-primary-fixed": "#280056",
+                        "secondary-fixed-dim": "#bdc4ee",
+                        "on-secondary": "#272e50",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-container": "#afb6df",
+                        "on-tertiary-fixed-variant": "#4a4900",
+                        "error": "#ffb4ab",
+                        "on-primary-fixed-variant": "#582f93",
+                        "on-tertiary": "#333200",
+                        "background": "#151218"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "32px",
+                        "max-width": "1440px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["IBM Plex Sans"],
+                        "label-mono": ["JetBrains Mono"],
+                        "headline-md": ["IBM Plex Sans"],
+                        "headline-lg": ["IBM Plex Sans"],
+                        "body-md": ["IBM Plex Sans"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-mono": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "headline-lg": ["30px", {"lineHeight": "38px", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background">
+<!-- Side Navigation Shell -->
+<nav class="h-screen w-64 fixed left-0 top-0 border-r border-outline-variant dark:border-outline-variant bg-surface dark:bg-surface flex flex-col h-full py-margin-desktop z-50">
+<div class="px-6 mb-10">
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary">Azure Status Hub</h1>
+<p class="font-label-mono text-label-mono text-on-surface-variant mt-1">Enterprise Infrastructure</p>
+</div>
+<div class="flex-1 flex flex-col space-y-1">
+<!-- Active Navigation -->
+<a class="flex items-center px-6 py-3 text-primary dark:text-primary border-r-2 border-primary hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="dashboard">dashboard</span>
+<span class="font-body-md text-body-md">Portfolio</span>
+</a>
+<a class="flex items-center px-6 py-3 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="folder_shared">folder_shared</span>
+<span class="font-body-md text-body-md">Projects</span>
+</a>
+<a class="flex items-center px-6 py-3 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="list_alt">list_alt</span>
+<span class="font-body-md text-body-md">Work Items</span>
+</a>
+<a class="flex items-center px-6 py-3 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="settings">settings</span>
+<span class="font-body-md text-body-md">Settings</span>
+</a>
+</div>
+<div class="px-6 mt-auto">
+<button class="w-full bg-primary-container text-on-primary-container py-3 font-body-md font-bold rounded hover:opacity-90 transition-opacity">
+                Create Report
+            </button>
+</div>
+</nav>
+<!-- Top App Bar Shell -->
+<header class="flex justify-between items-center w-full px-margin-desktop h-16 ml-64 max-w-[calc(100%-256px)] fixed top-0 bg-surface border-b border-outline-variant z-40">
+<div class="flex items-center">
+<h2 class="font-headline-md text-headline-md font-bold text-primary">Portfolio Overview</h2>
+</div>
+<div class="flex items-center space-y-0 space-x-6">
+<div class="relative group">
+<input class="bg-surface-container-low border border-outline px-4 py-1.5 rounded-full text-body-md w-64 focus:outline-none focus:border-primary transition-all" placeholder="Global Search..." type="text"/>
+<span class="material-symbols-outlined absolute right-3 top-2 text-on-surface-variant" data-icon="search">search</span>
+</div>
+<div class="flex items-center space-x-4">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors" data-icon="notifications">notifications</span>
+<div class="flex items-center space-x-3 cursor-pointer">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="account_circle">account_circle</span>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 mt-16 p-margin-desktop max-w-[1440px]">
+<!-- Bento Grid: High Level Metrics -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-margin-desktop">
+<!-- Total Projects -->
+<div class="glass-panel p-6 flex flex-col justify-between">
+<div>
+<span class="font-label-mono text-label-mono text-on-surface-variant uppercase tracking-wider">Total Projects</span>
+<h3 class="font-headline-lg text-headline-lg text-primary mt-2">142</h3>
+</div>
+<div class="mt-4 flex items-center text-primary text-label-mono">
+<span class="material-symbols-outlined text-[16px] mr-1" data-icon="trending_up">trending_up</span>
+<span>+12% vs last quarter</span>
+</div>
+</div>
+<!-- Portfolio Health -->
+<div class="glass-panel p-6 border-l-4 border-l-primary">
+<span class="font-label-mono text-label-mono text-on-surface-variant uppercase tracking-wider">Portfolio Health</span>
+<div class="flex items-end space-x-2 mt-2">
+<h3 class="font-headline-lg text-headline-lg text-on-surface">94%</h3>
+<span class="text-green-400 font-label-mono text-label-mono pb-1 status-pulse">STABLE</span>
+</div>
+<div class="mt-4 h-1 w-full bg-surface-container-highest">
+<div class="h-full bg-primary" style="width: 94%"></div>
+</div>
+</div>
+<!-- Efficiency Index -->
+<div class="glass-panel p-6">
+<span class="font-label-mono text-label-mono text-on-surface-variant uppercase tracking-wider">Efficiency Index</span>
+<h3 class="font-headline-lg text-headline-lg text-on-surface mt-2">0.88</h3>
+<div class="mt-4 flex items-center space-x-1">
+<div class="w-2 h-2 rounded-full bg-tertiary"></div>
+<span class="text-label-mono text-on-surface-variant">Near target (0.90)</span>
+</div>
+</div>
+<!-- ROI -->
+<div class="glass-panel p-6">
+<span class="font-label-mono text-label-mono text-on-surface-variant uppercase tracking-wider">Average ROI</span>
+<h3 class="font-headline-lg text-headline-lg text-on-surface mt-2">3.4x</h3>
+<div class="mt-4 flex items-center text-on-surface-variant text-label-mono">
+<span class="material-symbols-outlined text-[16px] mr-1" data-icon="payments">payments</span>
+<span>Real-time aggregate</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter mb-margin-desktop">
+<!-- Active Blockers List -->
+<div class="lg:col-span-1 glass-panel p-6">
+<div class="flex justify-between items-center mb-6">
+<h4 class="font-headline-md text-headline-md text-primary">Active Blockers</h4>
+<span class="bg-error-container text-on-error-container px-2 py-0.5 rounded text-label-mono">4 CRITICAL</span>
+</div>
+<div class="space-y-4">
+<div class="p-3 bg-surface-container-low border border-outline-variant">
+<div class="flex justify-between">
+<span class="font-label-mono text-label-mono text-error">#B-882</span>
+<span class="text-label-mono text-on-surface-variant">2h ago</span>
+</div>
+<p class="font-body-md text-body-md mt-1 font-semibold">Database Latency: West Europe</p>
+<p class="font-label-mono text-[10px] text-on-surface-variant mt-1 uppercase">Cloud Infrastructure Team</p>
+</div>
+<div class="p-3 bg-surface-container-low border border-outline-variant">
+<div class="flex justify-between">
+<span class="font-label-mono text-label-mono text-error">#B-901</span>
+<span class="text-label-mono text-on-surface-variant">5h ago</span>
+</div>
+<p class="font-body-md text-body-md mt-1 font-semibold">API Rate Limiting Incident</p>
+<p class="font-label-mono text-[10px] text-on-surface-variant mt-1 uppercase">DevOps Core</p>
+</div>
+<div class="p-3 bg-surface-container-low border border-outline-variant">
+<div class="flex justify-between">
+<span class="font-label-mono text-label-mono text-error">#B-914</span>
+<span class="text-label-mono text-on-surface-variant">8h ago</span>
+</div>
+<p class="font-body-md text-body-md mt-1 font-semibold">SSL Cert Expiration Warning</p>
+<p class="font-label-mono text-[10px] text-on-surface-variant mt-1 uppercase">Security Compliance</p>
+</div>
+</div>
+<button class="w-full mt-6 text-primary font-label-mono text-label-mono flex items-center justify-center hover:underline">
+                    VIEW ALL BLOCKERS <span class="material-symbols-outlined ml-2 text-[16px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<!-- Projected Milestones with Image -->
+<div class="lg:col-span-2 glass-panel overflow-hidden flex flex-col md:flex-row">
+<div class="p-6 md:w-1/2 flex flex-col justify-between">
+<div>
+<h4 class="font-headline-md text-headline-md text-primary mb-2">Projected Milestones</h4>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">Real-time predictive analytics for infrastructure expansion and hardware refreshes.</p>
+<div class="space-y-4">
+<div class="flex items-start">
+<div class="w-8 h-8 rounded bg-primary-container text-on-primary-container flex items-center justify-center mr-4">
+<span class="material-symbols-outlined text-[20px]" data-icon="rocket_launch">rocket_launch</span>
+</div>
+<div>
+<p class="font-body-md font-semibold">Quantum Core Expansion</p>
+<p class="font-label-mono text-label-mono text-on-surface-variant">Target: Q4 2024</p>
+</div>
+</div>
+<div class="flex items-start opacity-70">
+<div class="w-8 h-8 rounded bg-surface-container-highest text-primary flex items-center justify-center mr-4">
+<span class="material-symbols-outlined text-[20px]" data-icon="hub">hub</span>
+</div>
+<div>
+<p class="font-body-md font-semibold">Global CDN Upgrade</p>
+<p class="font-label-mono text-label-mono text-on-surface-variant">Target: Q1 2025</p>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-6">
+<div class="p-3 bg-secondary-container text-on-secondary-container rounded flex items-center">
+<span class="material-symbols-outlined mr-2" data-icon="info">info</span>
+<span class="font-label-mono text-label-mono uppercase">System confidence: 92%</span>
+</div>
+</div>
+</div>
+<div class="md:w-1/2 h-64 md:h-auto min-h-[300px]">
+<div class="w-full h-full bg-cover bg-center" data-alt="A highly detailed cinematic shot of a futuristic data center infrastructure with glowing purple fiber optic cables running through dark navy server racks. The lighting is low-key, emphasizing the high-tech, mission-critical atmosphere of enterprise hardware. Minimalist geometric patterns and soft ambient occlusion create a clean, corporate aesthetic with a focus on reliability and advanced technology." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBSd3F3zbqM8RGN1MpIOVwIDUuJCmkGwE5jKgRkxxqXVW2bdzItx17E0mpJkAwYTx9zAvH8hMU1_JvdD5p-XJl0vTCapOJqf1P8YxpudfzLXnTRAcECzn01Ebl01GmKA6xmdvERGl3pf-0s1O5fnpaYrYbUp_eaRLKdw4M_TPbEZjRMSz5ZidPddPZciLRxH8-pYS6xnaRQgyryhXJ1ohzN3wrnbnhI1iRbh9wro_DavP-HNELL5GD2Kw')"></div>
+</div>
+</div>
+</div>
+<!-- Project List Table -->
+<div class="glass-panel overflow-hidden">
+<div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
+<h4 class="font-headline-md text-headline-md text-on-surface">Active Project Inventory</h4>
+<div class="flex space-x-2">
+<button class="p-2 border border-outline rounded hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="filter_list">filter_list</span>
+</button>
+<button class="p-2 border border-outline rounded hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="download">download</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container text-on-surface-variant font-label-mono text-label-mono uppercase">
+<th class="px-6 py-3 font-medium">Project Name</th>
+<th class="px-6 py-3 font-medium">Status</th>
+<th class="px-6 py-3 font-medium">Efficiency</th>
+<th class="px-6 py-3 font-medium">Lead Engineer</th>
+<th class="px-6 py-3 font-medium">Budget Variance</th>
+<th class="px-6 py-3 font-medium"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant font-body-md text-body-md">
+<tr class="hover:bg-surface-container-high transition-colors group">
+<td class="px-6 py-4 font-semibold text-on-surface">Project Aurora Core</td>
+<td class="px-6 py-4">
+<span class="bg-green-900 text-green-200 px-2 py-0.5 rounded-full text-xs font-bold border border-green-700">OPERATIONAL</span>
+</td>
+<td class="px-6 py-4">0.96</td>
+<td class="px-6 py-4">Sarah Jenkins</td>
+<td class="px-6 py-4 text-green-400">-$2.4k</td>
+<td class="px-6 py-4 text-right">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer group-hover:text-primary" data-icon="more_vert">more_vert</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-colors group">
+<td class="px-6 py-4 font-semibold text-on-surface">SkyNet Migration</td>
+<td class="px-6 py-4">
+<span class="bg-primary-container text-on-primary-container px-2 py-0.5 rounded-full text-xs font-bold">ACTIVE</span>
+</td>
+<td class="px-6 py-4">0.74</td>
+<td class="px-6 py-4">Marcus Thorne</td>
+<td class="px-6 py-4 text-primary">+$12.1k</td>
+<td class="px-6 py-4 text-right">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer group-hover:text-primary" data-icon="more_vert">more_vert</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-colors group">
+<td class="px-6 py-4 font-semibold text-on-surface">Iron Gate Security</td>
+<td class="px-6 py-4">
+<span class="bg-error-container text-on-error-container px-2 py-0.5 rounded-full text-xs font-bold border border-error">DEGRADED</span>
+</td>
+<td class="px-6 py-4">0.42</td>
+<td class="px-6 py-4">Elena Rossi</td>
+<td class="px-6 py-4 text-on-surface-variant">On Track</td>
+<td class="px-6 py-4 text-right">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer group-hover:text-primary" data-icon="more_vert">more_vert</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-colors group">
+<td class="px-6 py-4 font-semibold text-on-surface">Data Lake Refresh</td>
+<td class="px-6 py-4">
+<span class="bg-surface-container-highest text-on-surface-variant px-2 py-0.5 rounded-full text-xs font-bold">QUEUED</span>
+</td>
+<td class="px-6 py-4">--</td>
+<td class="px-6 py-4">Alex Chen</td>
+<td class="px-6 py-4 text-on-surface-variant">--</td>
+<td class="px-6 py-4 text-right">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer group-hover:text-primary" data-icon="more_vert">more_vert</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-6 py-4 bg-surface-container-lowest flex justify-between items-center font-label-mono text-label-mono text-on-surface-variant">
+<span>Showing 4 of 142 Projects</span>
+<div class="flex space-x-4">
+<button class="hover:text-primary flex items-center"><span class="material-symbols-outlined text-[14px] mr-1" data-icon="chevron_left">chevron_left</span> Previous</button>
+<button class="hover:text-primary flex items-center">Next <span class="material-symbols-outlined text-[14px] ml-1" data-icon="chevron_right">chevron_right</span></button>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Nav for Mobile -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-margin-mobile py-2 md:hidden bg-surface-container dark:bg-surface-container border-t border-outline-variant shadow-lg">
+<div class="flex flex-col items-center justify-center bg-primary-container dark:bg-primary-container text-on-primary-container dark:text-on-primary-container rounded-full px-4 py-1">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-mono text-label-mono">Portfolio</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1">
+<span class="material-symbols-outlined" data-icon="folder_shared">folder_shared</span>
+<span class="font-label-mono text-label-mono">Projects</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1">
+<span class="material-symbols-outlined" data-icon="list_alt">list_alt</span>
+<span class="font-label-mono text-label-mono">Items</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-mono text-label-mono">Settings</span>
+</div>
+</nav>
+<script>
+        // Micro-interaction for table rows
+        document.querySelectorAll('tbody tr').forEach(row => {
+            row.addEventListener('click', () => {
+                row.classList.add('scale-[0.99]');
+                setTimeout(() => row.classList.remove('scale-[0.99]'), 100);
+            });
+        });
+
+        // Search bar focus effect
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('ring-2', 'ring-primary-container');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('ring-2', 'ring-primary-container');
+        });
+    </script>
+</body></html>
