@@ -1,4 +1,17 @@
+import { Prisma, MeetingStatus } from "@prisma/client";
 import { prisma } from "./prisma";
+
+const meetingListArgs = {
+  include: { attachments: true },
+} satisfies Prisma.MeetingDefaultArgs;
+
+const meetingDetailArgs = {
+  include: { attachments: { orderBy: { uploadedAt: "asc" } } },
+} satisfies Prisma.MeetingDefaultArgs;
+
+export type MeetingListItem = Prisma.MeetingGetPayload<typeof meetingListArgs>;
+export type MeetingDetail = Prisma.MeetingGetPayload<typeof meetingDetailArgs>;
+export type MeetingAttachmentItem = MeetingDetail["attachments"][number];
 
 export interface MeetingFormInput {
   title: string;
@@ -57,36 +70,35 @@ export function readMeetingFormData(formData: FormData): MeetingFormInput {
 // Clients still see PUBLISHED *and* ARCHIVED meetings (archiving just tucks
 // an old meeting out of the main list — it's a organizational state, not a
 // visibility one, unlike DRAFT).
-const NON_DRAFT_STATUSES = ["PUBLISHED", "ARCHIVED"] as const;
+const NON_DRAFT_STATUSES: MeetingStatus[] = ["PUBLISHED", "ARCHIVED"];
 
-export async function listMeetings(projectId: string, opts: { includeDrafts: boolean } = { includeDrafts: true }) {
+export async function listMeetings(
+  projectId: string,
+  opts: { includeDrafts: boolean } = { includeDrafts: true }
+): Promise<MeetingListItem[]> {
   return prisma.meeting.findMany({
     where: { projectId, ...(opts.includeDrafts ? {} : { status: { in: NON_DRAFT_STATUSES } }) },
     orderBy: { meetingDate: "desc" },
-    include: { attachments: true },
+    ...meetingListArgs,
   });
 }
 
-export async function getMeeting(id: string) {
+export async function getMeeting(id: string): Promise<MeetingDetail | null> {
   return prisma.meeting.findUnique({
     where: { id },
-    include: { attachments: { orderBy: { uploadedAt: "asc" } } },
+    ...meetingDetailArgs,
   });
 }
-
-export type MeetingListItem = Awaited<ReturnType<typeof listMeetings>>[number];
-export type MeetingDetail = NonNullable<Awaited<ReturnType<typeof getMeeting>>>;
-export type MeetingAttachmentItem = MeetingDetail["attachments"][number];
 
 export async function listMeetingsForSprint(
   projectId: string,
   sprintNumber: number,
   opts: { includeDrafts: boolean } = { includeDrafts: true }
-) {
+): Promise<MeetingListItem[]> {
   return prisma.meeting.findMany({
     where: { projectId, sprintNumber, ...(opts.includeDrafts ? {} : { status: { in: NON_DRAFT_STATUSES } }) },
     orderBy: { meetingDate: "desc" },
-    include: { attachments: true },
+    ...meetingListArgs,
   });
 }
 
@@ -94,11 +106,11 @@ export async function listMeetingsForWorkItem(
   projectId: string,
   workItemId: number,
   opts: { includeDrafts: boolean } = { includeDrafts: true }
-) {
+): Promise<MeetingListItem[]> {
   return prisma.meeting.findMany({
     where: { projectId, workItemId, ...(opts.includeDrafts ? {} : { status: { in: NON_DRAFT_STATUSES } }) },
     orderBy: { meetingDate: "desc" },
-    include: { attachments: true },
+    ...meetingListArgs,
   });
 }
 
