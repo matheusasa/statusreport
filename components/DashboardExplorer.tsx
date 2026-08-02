@@ -1,25 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { WorkItem, SprintSummary } from "@/lib/types";
 import { summarizeTotals, summarizeAssignees, summarizeSprintItems } from "@/lib/portfolio-summary";
 import { KpiCard } from "./KpiCard";
 import { ProgressBar } from "./ProgressBar";
 import { StatusPill } from "./StatusPill";
-import { SelectFilter, ToggleFilter } from "./SelectFilter";
+import { MultiSelectFilter } from "./SelectFilter";
 import { ProjectDatesCard } from "./ProjectDatesCard";
 import { initials, formatDate } from "@/lib/format";
-
-function useUniqueOptions(items: WorkItem[]) {
-  return useMemo(() => {
-    const sprints = Array.from(new Set(items.map((i) => i.sprintLabel))).sort();
-    const states = Array.from(new Set(items.map((i) => i.state))).sort();
-    const types = Array.from(new Set(items.map((i) => i.type))).sort();
-    const assignees = Array.from(new Set(items.map((i) => i.assignee).filter((a): a is string => !!a))).sort();
-    return { sprints, states, types, assignees };
-  }, [items]);
-}
+import { useUniqueOptions, useMultiFilter, assigneeKey, BACKLOG_LABEL } from "@/lib/use-filter-options";
 
 /**
  * Client-side filter layer for the Visão Geral (dashboard) page. Takes the
@@ -43,22 +34,22 @@ export function DashboardExplorer({
 }) {
   const { sprints: sprintOptions, states, types, assignees: assigneeOptions } = useUniqueOptions(items);
 
-  const [sprintFilter, setSprintFilter] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
-  const [stateFilter, setStateFilter] = useState("");
-  const [assigneeFilter, setAssigneeFilter] = useState("");
-  const [hideBacklog, setHideBacklog] = useState(false);
+  // Sprint opens with every sprint checked except Backlog; the rest open fully
+  // checked (i.e. no narrowing).
+  const sprintFilter = useMultiFilter(sprintOptions, [BACKLOG_LABEL]);
+  const typeFilter = useMultiFilter(types);
+  const stateFilter = useMultiFilter(states);
+  const assigneeFilter = useMultiFilter(assigneeOptions);
 
   const filtered = useMemo(() => {
-    return items.filter((item) => {
-      if (hideBacklog && item.sprintNumber === null) return false;
-      if (sprintFilter && item.sprintLabel !== sprintFilter) return false;
-      if (typeFilter && item.type !== typeFilter) return false;
-      if (stateFilter && item.state !== stateFilter) return false;
-      if (assigneeFilter && item.assignee !== assigneeFilter) return false;
-      return true;
-    });
-  }, [items, sprintFilter, typeFilter, stateFilter, assigneeFilter, hideBacklog]);
+    return items.filter(
+      (item) =>
+        sprintFilter.accepts(item.sprintLabel) &&
+        typeFilter.accepts(item.type) &&
+        stateFilter.accepts(item.state) &&
+        assigneeFilter.accepts(assigneeKey(item))
+    );
+  }, [items, sprintFilter.accepts, typeFilter.accepts, stateFilter.accepts, assigneeFilter.accepts]);
 
   const totals = useMemo(() => summarizeTotals(filtered), [filtered]);
   const assigneeRows = useMemo(() => summarizeAssignees(filtered), [filtered]);
@@ -85,7 +76,8 @@ export function DashboardExplorer({
     [filtered]
   );
 
-  const hasActiveFilters = sprintFilter || typeFilter || stateFilter || assigneeFilter || hideBacklog;
+  const isDefault =
+    sprintFilter.isDefault && typeFilter.isDefault && stateFilter.isDefault && assigneeFilter.isDefault;
 
   return (
     <div className="space-y-6">
@@ -99,19 +91,37 @@ export function DashboardExplorer({
 
       {/* Filter bar */}
       <div className="card flex flex-wrap items-end gap-4 p-4 shadow-card">
-        <SelectFilter label="Sprint" value={sprintFilter} onChange={setSprintFilter} options={sprintOptions} />
-        <SelectFilter label="Tipo (Projeto/Epic/Feature...)" value={typeFilter} onChange={setTypeFilter} options={types} />
-        <SelectFilter label="Status" value={stateFilter} onChange={setStateFilter} options={states} />
-        <SelectFilter label="Responsável" value={assigneeFilter} onChange={setAssigneeFilter} options={assigneeOptions} />
-        <ToggleFilter label="Ocultar backlog" checked={hideBacklog} onChange={setHideBacklog} />
-        {hasActiveFilters ? (
+        <MultiSelectFilter
+          label="Sprint"
+          selected={sprintFilter.selected}
+          onChange={sprintFilter.setSelected}
+          options={sprintOptions}
+        />
+        <MultiSelectFilter
+          label="Tipo (Projeto/Epic/Feature...)"
+          selected={typeFilter.selected}
+          onChange={typeFilter.setSelected}
+          options={types}
+        />
+        <MultiSelectFilter
+          label="Status"
+          selected={stateFilter.selected}
+          onChange={stateFilter.setSelected}
+          options={states}
+        />
+        <MultiSelectFilter
+          label="Responsável"
+          selected={assigneeFilter.selected}
+          onChange={assigneeFilter.setSelected}
+          options={assigneeOptions}
+        />
+        {!isDefault ? (
           <button
             onClick={() => {
-              setSprintFilter("");
-              setTypeFilter("");
-              setStateFilter("");
-              setAssigneeFilter("");
-              setHideBacklog(false);
+              sprintFilter.reset();
+              typeFilter.reset();
+              stateFilter.reset();
+              assigneeFilter.reset();
             }}
             className="rounded-lg border border-outline-variant px-3 py-2 text-body-md text-on-surface-variant transition-colors hover:bg-surface-container-high"
           >
@@ -279,7 +289,7 @@ export function DashboardExplorer({
                 </div>
               </div>
             ))}
-            {!hideBacklog && backlogCount > 0 ? (
+            {backlogCount > 0 ? (
               <div className="flex items-center gap-4 px-6 py-3.5 bg-surface-container-low/50">
                 <div className="w-20 shrink-0">
                   <p className="text-body-md font-semibold text-on-surface-variant">Backlog</p>

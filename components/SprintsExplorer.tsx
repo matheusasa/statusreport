@@ -1,13 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { WorkItem, SprintSummary } from "@/lib/types";
 import { summarizeSprintItems } from "@/lib/portfolio-summary";
 import { formatDate } from "@/lib/format";
 import { ProgressBar } from "./ProgressBar";
 import { StatusPill, SchedulePill } from "./StatusPill";
-import { SelectFilter, ToggleFilter } from "./SelectFilter";
+import { MultiSelectFilter } from "./SelectFilter";
+import { useUniqueOptions, useMultiFilter, assigneeKey } from "@/lib/use-filter-options";
 
 const PHASE_LABEL: Record<string, string> = {
   concluida: "Concluída",
@@ -36,45 +37,52 @@ export function SprintsExplorer({
   items: WorkItem[];
   meetingsBySprint: Record<number, SprintMeetingRef[]>;
 }) {
-  const { types, assignees, states } = useMemo(() => {
-    return {
-      types: Array.from(new Set(items.map((i) => i.type))).sort(),
-      assignees: Array.from(new Set(items.map((i) => i.assignee).filter((a): a is string => !!a))).sort(),
-      states: Array.from(new Set(items.map((i) => i.state))).sort(),
-    };
-  }, [items]);
+  const { types, assignees, states } = useUniqueOptions(items);
 
-  const [typeFilter, setTypeFilter] = useState("");
-  const [assigneeFilter, setAssigneeFilter] = useState("");
-  const [stateFilter, setStateFilter] = useState("");
-  const [hideNotStarted, setHideNotStarted] = useState(false);
+  // Every filter opens fully checked (no narrowing). There's no Sprint filter
+  // here — the page is already grouped by sprint.
+  const typeFilter = useMultiFilter(types);
+  const assigneeFilter = useMultiFilter(assignees);
+  const stateFilter = useMultiFilter(states);
 
   const filteredItems = useMemo(() => {
-    return items.filter((item) => {
-      if (hideNotStarted && item.stateGroup === "backlog") return false;
-      if (typeFilter && item.type !== typeFilter) return false;
-      if (assigneeFilter && item.assignee !== assigneeFilter) return false;
-      if (stateFilter && item.state !== stateFilter) return false;
-      return true;
-    });
-  }, [items, typeFilter, assigneeFilter, stateFilter, hideNotStarted]);
+    return items.filter(
+      (item) =>
+        typeFilter.accepts(item.type) &&
+        assigneeFilter.accepts(assigneeKey(item)) &&
+        stateFilter.accepts(item.state)
+    );
+  }, [items, typeFilter.accepts, assigneeFilter.accepts, stateFilter.accepts]);
 
-  const hasActiveFilters = typeFilter || assigneeFilter || stateFilter || hideNotStarted;
+  const isDefault = typeFilter.isDefault && assigneeFilter.isDefault && stateFilter.isDefault;
 
   return (
     <div className="space-y-6">
       <div className="card flex flex-wrap items-end gap-4 p-4 shadow-card">
-        <SelectFilter label="Tipo (Projeto/Epic/Feature...)" value={typeFilter} onChange={setTypeFilter} options={types} />
-        <SelectFilter label="Responsável" value={assigneeFilter} onChange={setAssigneeFilter} options={assignees} />
-        <SelectFilter label="Status" value={stateFilter} onChange={setStateFilter} options={states} />
-        <ToggleFilter label="Ocultar não iniciados" checked={hideNotStarted} onChange={setHideNotStarted} />
-        {hasActiveFilters ? (
+        <MultiSelectFilter
+          label="Tipo (Projeto/Epic/Feature...)"
+          selected={typeFilter.selected}
+          onChange={typeFilter.setSelected}
+          options={types}
+        />
+        <MultiSelectFilter
+          label="Responsável"
+          selected={assigneeFilter.selected}
+          onChange={assigneeFilter.setSelected}
+          options={assignees}
+        />
+        <MultiSelectFilter
+          label="Status"
+          selected={stateFilter.selected}
+          onChange={stateFilter.setSelected}
+          options={states}
+        />
+        {!isDefault ? (
           <button
             onClick={() => {
-              setTypeFilter("");
-              setAssigneeFilter("");
-              setStateFilter("");
-              setHideNotStarted(false);
+              typeFilter.reset();
+              assigneeFilter.reset();
+              stateFilter.reset();
             }}
             className="rounded-lg border border-outline-variant px-3 py-2 text-body-md text-on-surface-variant transition-colors hover:bg-surface-container-high"
           >

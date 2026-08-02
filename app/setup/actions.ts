@@ -25,10 +25,8 @@ export async function createFirstAdminAction(formData: FormData) {
     throw new Error("Preencha nome, email e uma senha com pelo menos 8 caracteres.");
   }
 
-  // See app/admin/users/actions.ts for why this cast is needed — Better
-  // Auth's admin plugin narrows `role` to "admin" | "user" by default.
   await auth.api.createUser({
-    body: { name, email, password, role: "ADMIN" as "admin" },
+    body: { name, email, password, role: "ADMIN" },
   });
 
   redirect("/login");

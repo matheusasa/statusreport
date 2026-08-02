@@ -32,13 +32,10 @@ export async function inviteUserAction(formData: FormData) {
   // one is set by the recipient via the "set your password" email below.
   const tempPassword = `${randomUUID()}${randomUUID()}`;
 
-  // Better Auth's admin plugin types `role` as "admin" | "user" unless a
-  // full access-control `roles` config is supplied. The database column
-  // (and the plugin's own runtime validation) is a plain string, so this
-  // app's three roles (ADMIN/MANAGER/CLIENT — see lib/session.ts) are safe
-  // to pass through; the cast only works around the narrower TS type.
+  // `role` needs no cast: the admin plugin infers its role union from the
+  // `roles` map in lib/auth.ts, which is keyed by our ADMIN/MANAGER/CLIENT.
   const created = await auth.api.createUser({
-    body: { name, email, password: tempPassword, role: role as "admin" },
+    body: { name, email, password: tempPassword, role },
   });
 
   if (role !== "ADMIN" && projectIds.length > 0) {
@@ -67,7 +64,7 @@ export async function updateRoleAction(userId: string, formData: FormData) {
   const role = parseRole(formData.get("role"));
 
   await auth.api.setRole({
-    body: { userId, role: role as "admin" },
+    body: { userId, role },
     headers: headers(),
   });
 

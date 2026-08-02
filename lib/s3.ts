@@ -22,6 +22,17 @@ function getClient(): S3Client {
             secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
           }
         : undefined,
+    // Since ~3.729, the SDK defaults to "WHEN_SUPPORTED": it adds a flexible
+    // checksum (aws-chunked trailer, or a header for known-length bodies) to
+    // every request/response by default. Real AWS handles that fine, but
+    // smaller S3-compatible emulators (floci, older LocalStack/MinIO builds)
+    // often don't implement it correctly and send back a malformed response
+    // — which surfaces here as "@aws-sdk XML parse error: unexpected
+    // content" on uploadToS3. "WHEN_REQUIRED" restores the old opt-in
+    // behavior (only checksum when the API mandates it), which every
+    // S3-compatible backend handles. Harmless against real AWS S3 too.
+    requestChecksumCalculation: "WHEN_REQUIRED",
+    responseChecksumValidation: "WHEN_REQUIRED",
   });
   return cachedClient;
 }

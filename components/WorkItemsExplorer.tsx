@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { WorkItem } from "@/lib/types";
 import { StatusPill, SchedulePill } from "./StatusPill";
-import { SelectFilter, ToggleFilter } from "./SelectFilter";
+import { MultiSelectFilter } from "./SelectFilter";
 import { formatDate } from "@/lib/format";
+import { useUniqueOptions, useMultiFilter, assigneeKey, BACKLOG_LABEL } from "@/lib/use-filter-options";
 
 const SCHEDULE_LABEL: Record<string, string> = {
   late: "Atrasado",
@@ -14,40 +15,58 @@ const SCHEDULE_LABEL: Record<string, string> = {
   "on-track": "No prazo",
 };
 
-function useUniqueOptions(items: WorkItem[]) {
-  return useMemo(() => {
-    const sprints = Array.from(new Set(items.map((i) => i.sprintLabel))).sort();
-    const states = Array.from(new Set(items.map((i) => i.state))).sort();
-    const types = Array.from(new Set(items.map((i) => i.type))).sort();
-    const assignees = Array.from(new Set(items.map((i) => i.assignee).filter((a): a is string => !!a))).sort();
-    return { sprints, states, types, assignees };
-  }, [items]);
-}
+/** The Prazo filter checkboxes are labelled, so we filter on labels and map
+ * item.scheduleFlag through SCHEDULE_LABEL to compare. */
+const SCHEDULE_OPTIONS = Object.values(SCHEDULE_LABEL);
 
 export function WorkItemsExplorer({ items }: { items: WorkItem[] }) {
   const searchParams = useSearchParams();
   const { sprints, states, types, assignees } = useUniqueOptions(items);
 
+  // ?schedule=late (deep link from the dashboard) opens with only that value
+  // checked; otherwise every filter opens fully checked, except Sprint which
+  // opens with everything but Backlog.
+  const scheduleFromUrl = searchParams.get("schedule");
+  const scheduleDefaultExcluded =
+    scheduleFromUrl && SCHEDULE_LABEL[scheduleFromUrl]
+      ? SCHEDULE_OPTIONS.filter((l) => l !== SCHEDULE_LABEL[scheduleFromUrl])
+      : [];
+
   const [search, setSearch] = useState("");
-  const [sprintFilter, setSprintFilter] = useState("");
-  const [stateFilter, setStateFilter] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
-  const [assigneeFilter, setAssigneeFilter] = useState("");
-  const [scheduleFilter, setScheduleFilter] = useState(searchParams.get("schedule") ?? "");
-  const [hideBacklog, setHideBacklog] = useState(false);
+  const sprintFilter = useMultiFilter(sprints, [BACKLOG_LABEL]);
+  const stateFilter = useMultiFilter(states);
+  const typeFilter = useMultiFilter(types);
+  const assigneeFilter = useMultiFilter(assignees);
+  const scheduleFilter = useMultiFilter(SCHEDULE_OPTIONS, scheduleDefaultExcluded);
 
   const filtered = useMemo(() => {
     return items.filter((item) => {
-      if (hideBacklog && item.sprintNumber === null) return false;
       if (search && !`${item.id} ${item.title}`.toLowerCase().includes(search.toLowerCase())) return false;
-      if (sprintFilter && item.sprintLabel !== sprintFilter) return false;
-      if (stateFilter && item.state !== stateFilter) return false;
-      if (typeFilter && item.type !== typeFilter) return false;
-      if (assigneeFilter && item.assignee !== assigneeFilter) return false;
-      if (scheduleFilter && item.scheduleFlag !== scheduleFilter) return false;
-      return true;
+      return (
+        sprintFilter.accepts(item.sprintLabel) &&
+        stateFilter.accepts(item.state) &&
+        typeFilter.accepts(item.type) &&
+        assigneeFilter.accepts(assigneeKey(item)) &&
+        scheduleFilter.accepts(SCHEDULE_LABEL[item.scheduleFlag])
+      );
     });
-  }, [items, search, sprintFilter, stateFilter, typeFilter, assigneeFilter, scheduleFilter, hideBacklog]);
+  }, [
+    items,
+    search,
+    sprintFilter.accepts,
+    stateFilter.accepts,
+    typeFilter.accepts,
+    assigneeFilter.accepts,
+    scheduleFilter.accepts,
+  ]);
+
+  const isDefault =
+    !search &&
+    sprintFilter.isDefault &&
+    stateFilter.isDefault &&
+    typeFilter.isDefault &&
+    assigneeFilter.isDefault &&
+    scheduleFilter.isDefault;
 
   return (
     <div className="space-y-4">
@@ -64,36 +83,40 @@ export function WorkItemsExplorer({ items }: { items: WorkItem[] }) {
             />
           </div>
         </div>
-        <SelectFilter label="Sprint" value={sprintFilter} onChange={setSprintFilter} options={sprints} />
-        <SelectFilter label="Status" value={stateFilter} onChange={setStateFilter} options={states} />
-        <SelectFilter label="Tipo" value={typeFilter} onChange={setTypeFilter} options={types} />
-        <SelectFilter label="Responsável" value={assigneeFilter} onChange={setAssigneeFilter} options={assignees} />
-        <div className="flex flex-col gap-1">
-          <label className="font-mono text-label-mono uppercase tracking-wider text-outline">Prazo</label>
-          <select
-            value={scheduleFilter}
-            onChange={(e) => setScheduleFilter(e.target.value)}
-            className="rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-body-md text-on-surface focus:border-primary focus:outline-none"
-          >
-            <option value="">Todos</option>
-            {Object.entries(SCHEDULE_LABEL).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <ToggleFilter label="Ocultar backlog" checked={hideBacklog} onChange={setHideBacklog} />
-        {(search || sprintFilter || stateFilter || typeFilter || assigneeFilter || scheduleFilter || hideBacklog) && (
+        <MultiSelectFilter
+          label="Sprint"
+          selected={sprintFilter.selected}
+          onChange={sprintFilter.setSelected}
+          options={sprints}
+        />
+        <MultiSelectFilter
+          label="Status"
+          selected={stateFilter.selected}
+          onChange={stateFilter.setSelected}
+          options={states}
+        />
+        <MultiSelectFilter label="Tipo" selected={typeFilter.selected} onChange={typeFilter.setSelected} options={types} />
+        <MultiSelectFilter
+          label="Responsável"
+          selected={assigneeFilter.selected}
+          onChange={assigneeFilter.setSelected}
+          options={assignees}
+        />
+        <MultiSelectFilter
+          label="Prazo"
+          selected={scheduleFilter.selected}
+          onChange={scheduleFilter.setSelected}
+          options={SCHEDULE_OPTIONS}
+        />
+        {!isDefault && (
           <button
             onClick={() => {
               setSearch("");
-              setSprintFilter("");
-              setStateFilter("");
-              setTypeFilter("");
-              setAssigneeFilter("");
-              setScheduleFilter("");
-              setHideBacklog(false);
+              sprintFilter.reset();
+              stateFilter.reset();
+              typeFilter.reset();
+              assigneeFilter.reset();
+              scheduleFilter.reset();
             }}
             className="rounded-lg border border-outline-variant px-3 py-2 text-body-md text-on-surface-variant transition-colors hover:bg-surface-container-high"
           >
